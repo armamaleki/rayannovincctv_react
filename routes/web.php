@@ -10,6 +10,13 @@ Route::prefix('/')->name('client.')->group(function () {
     Route::prefix('/')->name('store.')->group(function () {
         Route::get('/store', [StoreController::class, 'index'])->name('index');
     });
+    Route::get('/product-categories' , function (){
+        return inertia('client/product-categories/index');
+    })->name('product-categories.index');
+
+
+
+
 });
 
 Route::inertia('/', 'welcome')->name('home');

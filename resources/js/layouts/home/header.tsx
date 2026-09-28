@@ -3,6 +3,7 @@ import {LucideIcon, Monitor, Moon, Store, Sun} from "lucide-react";
 import {Appearance, useAppearance} from '@/hooks/use-appearance';
 import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
+import client from "@/routes/client";
 
 
 export default function HomeHeader() {
@@ -26,7 +27,7 @@ export default function HomeHeader() {
     const navItems = [
         {
             label: 'فروشگاه',
-            href: '/products',
+            href: client.store.index(),
             icon: <Store/>,
         },
         {

@@ -18,7 +18,7 @@ use Inertia\Inertia;
 class TeamInvitationController extends Controller
 {
     /**
-     * Store a newly created invitation.
+     * store a newly created invitation.
      */
     public function store(CreateTeamInvitationRequest $request, Team $team): RedirectResponse
     {

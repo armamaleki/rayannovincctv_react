@@ -32,7 +32,7 @@ class TeamController extends Controller
     }
 
     /**
-     * Store a newly created team.
+     * store a newly created team.
      */
     public function store(SaveTeamRequest $request, CreateTeam $createTeam): RedirectResponse
     {
