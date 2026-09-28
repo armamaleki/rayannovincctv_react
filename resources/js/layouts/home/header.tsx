@@ -1,9 +1,15 @@
 import {Link} from '@inertiajs/react'
-import {LucideIcon, Monitor, Moon, Store, Sun} from "lucide-react";
+import {ChevronDown, Download, LucideIcon, Monitor, Moon, Store, Sun} from "lucide-react";
 import {Appearance, useAppearance} from '@/hooks/use-appearance';
 import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
 import client from "@/routes/client";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 
 export default function HomeHeader() {
@@ -13,6 +19,7 @@ export default function HomeHeader() {
         {value: 'dark', icon: Moon},
         {value: 'system', icon: Monitor},
     ];
+
     const {appearance, updateAppearance} = useAppearance();
 
     const updateAppearanceChainge = (value) => {
@@ -32,13 +39,22 @@ export default function HomeHeader() {
         },
         {
             label: 'دسته بندی محصولات',
-            href: '/products',
+            href: client.productCategories.index(),
             icon: <Store/>,
         },
         {
             label: 'مرکز دانلود',
-            href: '/products',
-            icon: <Store/>,
+            icon: <Download />,
+            children: [
+                {
+                    label: 'دانلود نرم افزار',
+                    href: client.applications(),
+                },
+                {
+                    label: 'دانلود لیست قیمت',
+                    href: client.priceList(),
+                },
+            ],
         },
         {
             label: 'مقالات',
@@ -96,19 +112,133 @@ export default function HomeHeader() {
                     aria-label="Main navigation"
                 >
                     {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className=" group relative flex items-center gap-2 rounded-xl px-4 py-3 text-[14px] font-medium text-slate-600 dark:text-gray-200 transition-all duration-200 hover:bg-slate-100 hover:text-slate-950 dark:hover:bg-white/10 dark:hover:text-white">
-                            {item.icon && (
-                                <span
-                                    className=" flex size-5 shrink-0 items-center justify-center text-slate-500 dark:text-gray-400 transition-colors duration-200 group-hover:text-slate-950 dark:group-hover:text-white">
-                                    {item.icon}
-                                </span>
-                            )}
-                            <span className="whitespace-nowrap">{item.label}</span>
+                        <div key={item.label} className="relative">
+                            {item.children ? (
+                                <DropdownMenu dir="rtl">
+                                    <DropdownMenuTrigger asChild>
+                                        <button
+                                            className="
+                            group relative flex items-center gap-2
+                            rounded-xl px-4 py-3
+                            text-[14px] font-medium
+                            text-slate-600
+                            transition-all duration-200
+                            outline-none
+                            hover:bg-slate-100
+                            hover:text-slate-950
+                            dark:text-gray-200
+                            dark:hover:bg-white/10
+                            dark:hover:text-white
+                        "
+                                        >
+                                            {item.icon && (
+                                                <span
+                                                    className="
+                                    flex size-5 shrink-0
+                                    items-center justify-center
+                                    text-slate-500
+                                    transition-colors duration-200
+                                    group-hover:text-slate-950
+                                    dark:text-gray-400
+                                    dark:group-hover:text-white
+                                "
+                                                >
+                                {item.icon}
+                            </span>
+                                            )}
 
-                        </Link>
+                                            <span className="whitespace-nowrap">
+                            {item.label}
+                        </span>
+
+                                            <ChevronDown
+                                                className="
+                                size-4 text-slate-400
+                                transition-transform duration-200
+                                group-data-[state=open]:rotate-180
+                            "
+                                            />
+                                        </button>
+                                    </DropdownMenuTrigger>
+
+                                    <DropdownMenuContent
+                                        align="start"
+                                        sideOffset={6}
+                                        className="
+                        min-w-[210px]
+                        rounded-xl
+                        border-slate-200
+                        bg-white/95
+                        p-1.5
+                        shadow-xl
+                        backdrop-blur-xl
+                        dark:border-white/10
+                        dark:bg-slate-900/95
+                    "
+                                    >
+                                        {item.children.map((child) => (
+                                            <DropdownMenuItem
+                                                key={child.href}
+                                                asChild
+                                                className="
+                                cursor-pointer
+                                rounded-lg
+                                px-3 py-2.5
+                                text-sm
+                                text-slate-600
+                                outline-none
+                                focus:bg-slate-100
+                                focus:text-slate-950
+                                dark:text-gray-300
+                                dark:focus:bg-white/10
+                                dark:focus:text-white
+                            "
+                                            >
+                                                <Link href={child.href}>
+                                                    {child.label}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            ) : (
+                                <Link
+                                    href={item.href}
+                                    className="
+                    group relative flex items-center gap-2
+                    rounded-xl px-4 py-3
+                    text-[14px] font-medium
+                    text-slate-600
+                    transition-all duration-200
+                    hover:bg-slate-100
+                    hover:text-slate-950
+                    dark:text-gray-200
+                    dark:hover:bg-white/10
+                    dark:hover:text-white
+                "
+                                >
+                                    {item.icon && (
+                                        <span
+                                            className="
+                            flex size-5 shrink-0
+                            items-center justify-center
+                            text-slate-500
+                            transition-colors duration-200
+                            group-hover:text-slate-950
+                            dark:text-gray-400
+                            dark:group-hover:text-white
+                        "
+                                        >
+                        {item.icon}
+                    </span>
+                                    )}
+
+                                    <span className="whitespace-nowrap">
+                    {item.label}
+                </span>
+                                </Link>
+                            )}
+                        </div>
                     ))}
                 </nav>
                 <div className="hidden items-center gap-3 lg:flex">
