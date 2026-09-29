@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import {BookOpen, FolderGit2, LayoutGrid, PhoneCallIcon} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
 
-export function AppSidebar() {
+export function ManagerSidebar() {
     const page = usePage();
     const dashboardUrl = page.props.currentTeam
-        ? dashboard(page.props.currentTeam.slug)
+        ? ''
         : '/';
 
     const mainNavItems: NavItem[] = [
@@ -31,19 +31,14 @@ export function AppSidebar() {
 
     const footerNavItems: NavItem[] = [
         {
-            title: 'Repository',
-            href: 'https://github.com/laravel/react-starter-kit',
-            icon: FolderGit2,
-        },
-        {
-            title: 'Documentation',
-            href: 'https://laravel.com/docs/starter-kits#react',
-            icon: BookOpen,
+            title: 'تماس با پشتیبانی',
+            href: 'https://bariz.tech/fa/contact-us',
+            icon: PhoneCallIcon,
         },
     ];
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar side={'right'} dir={'rtl'} collapsible="icon" variant="inset">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -54,17 +49,10 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        {/*<TeamSwitcher />*/}
-                    </SidebarMenuItem>
-                </SidebarMenu>
             </SidebarHeader>
-
             <SidebarContent>
                 <NavMain items={mainNavItems} />
             </SidebarContent>
-
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />

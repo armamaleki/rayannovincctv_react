@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Client\ArticleController;
 use App\Http\Controllers\Client\ProductCategoryController;
 use App\Http\Controllers\Client\StoreController;
+use App\Http\Controllers\Client\WarrantyRegistrationController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Teams\TeamInvitationController;
-use App\Http\Middleware\EnsureTeamMembership;
+use App\Models\Application;
+use App\Models\PriceList;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/')->name('client.')->group(function () {
@@ -15,30 +19,56 @@ Route::prefix('/')->name('client.')->group(function () {
         Route::get('/', [ProductCategoryController::class, 'index'])->name('index');
         Route::get('/{slug}', [ProductCategoryController::class, 'show'])->name('show');
     });
+
+    Route::prefix('/articles')->name('articles.')->group(function () {
+        Route::get('/', [ArticleController::class, 'index'])->name('index');
+        Route::get('/{article}', [ArticleController::class, 'show'])->name('show');
+    });
+
+    Route::get('cctv-camera-image-quality', function () {
+        return inertia('client/cctv-camera-image-quality');
+    })->name('cctv-camera-image-quality');
+
+    Route::get('/nasb-doorbin-madarbaste', function () {
+        return inertia('client/nasb-doorbin-madarbaste');
+    })->name('nasb-doorbin-madarbaste');
+
+    Route::get('/disk-calculator', function () {
+        return inertia('client/calculator');
+    })->name('calculator');
+
+    Route::prefix('/warranty-registration')->name('warranty-registration.')->group(function () {
+        Route::get('/', [WarrantyRegistrationController::class, 'index'])->name('index');
+        Route::post('/store', [WarrantyRegistrationController::class, 'store'])->name('store');
+    });
+
     Route::get('/applications', function () {
-        $applications = \App\Models\Application::where('status' , 'active')->latestUpdated()->get();
-        $tags = \App\Models\Tag::all();
+        $applications = Application::where('status', 'active')->latestUpdated()->get();
+        $tags = Tag::all();
+
         return inertia('client/applications');
     })->name('applications');
 
     Route::get('/price-list', function () {
-        $price_lists = \App\Models\PriceList::where('status' , 'active')->latestUpdated()->get();
-        $tags = \App\Models\Tag::all();
+        $price_lists = PriceList::where('status', 'active')->latestUpdated()->get();
+        $tags = Tag::all();
+
         return inertia('client/price-list');
     })->name('price-list');
 });
 
 Route::inertia('/', 'welcome')->name('home');
 
-Route::prefix('{current_team}')
-    ->middleware(['auth', 'verified', EnsureTeamMembership::class])
-    ->group(function () {
-        Route::get('dashboard', DashboardController::class)->name('dashboard');
-    });
+Route::prefix('/dashboard')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', DashboardController::class)->name('index');
+});
 
-Route::middleware(['auth'])->group(function () {
-    Route::post('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
-    Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
+Route::get('/auth', [AuthController::class, 'index'])->name('login.index')->middleware('guest');
+Route::post('login', [AuthController::class, 'store'])->name('login.store');
+Route::post('verify', [AuthController::class, 'verify'])->name('login.verify');
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
 });
 
 require __DIR__.'/settings.php';
+require __DIR__.'/manager.php';

@@ -1,5 +1,5 @@
-import {Link} from '@inertiajs/react'
-import {ChevronDown, Download, LucideIcon, Monitor, Moon, Store, Sun} from "lucide-react";
+import {Link, usePage} from '@inertiajs/react'
+import {ChevronDown, Download, LucideIcon, Monitor, Moon, Pencil, Search, ShoppingCart, Store, Sun} from "lucide-react";
 import {Appearance, useAppearance} from '@/hooks/use-appearance';
 import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
@@ -10,6 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import login from "@/routes/login";
 
 
 export default function HomeHeader() {
@@ -44,7 +45,7 @@ export default function HomeHeader() {
         },
         {
             label: 'مرکز دانلود',
-            icon: <Download />,
+            icon: <Download/>,
             children: [
                 {
                     label: 'دانلود نرم افزار',
@@ -58,12 +59,12 @@ export default function HomeHeader() {
         },
         {
             label: 'مقالات',
-            href: '/products',
-            icon: <Store/>,
+            href: client.articles.index(),
+            icon: <Pencil/>,
         },
         {
             label: 'کیفیت تصویر',
-            href: '/products',
+            href: client.cctvCameraImageQuality(),
             icon: <Store/>,
         },
         {
@@ -72,13 +73,11 @@ export default function HomeHeader() {
             icon: <Store/>,
         },
     ]
-
+    const {auth} = usePage().props;
     return (
         <header
             className="relative z-50 border-b border-slate-200/70 bg-sky-100 dark:bg-gray-900 transition-all  backdrop-blur-xl">
             <div className="mx-auto flex h-20  items-center px-6 lg:px-10 xl:px-12">
-
-                {/* Logo */}
                 <Link
                     href="/"
                     className="group flex shrink-0 items-center gap-3"
@@ -105,8 +104,6 @@ export default function HomeHeader() {
                         </div>
                     </div>
                 </Link>
-
-                {/* Desktop Navigation */}
                 <nav
                     className="mx-auto hidden items-center gap-1 lg:flex"
                     aria-label="Main navigation"
@@ -273,16 +270,7 @@ export default function HomeHeader() {
                             hover:text-slate-950
                         "
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="size-[18px]"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                        >
-                            <circle cx="11" cy="11" r="6.5"/>
-                            <path d="m16 16 4 4"/>
-                        </svg>
+                        <Search/>
                     </Link>
 
                     {/* Cart */}
@@ -299,17 +287,7 @@ export default function HomeHeader() {
                         "
                         aria-label="سبد خرید"
                     >
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="size-[18px]"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                        >
-                            <path d="M4 5h2l1.2 9.2a2 2 0 0 0 2 1.8h7.6a2 2 0 0 0 1.9-1.5L20 8H7"/>
-                            <circle cx="10" cy="19" r="1"/>
-                            <circle cx="17" cy="19" r="1"/>
-                        </svg>
+                        <ShoppingCart/>
 
                         <span className="
                             absolute -right-1.5 -top-1.5
@@ -321,34 +299,28 @@ export default function HomeHeader() {
                         </span>
                     </Link>
 
-                    {/* CTA */}
-                    <Link
-                        href="/contact"
-                        className="
-                            ml-1 inline-flex items-center gap-2
-                            rounded-xl bg-slate-950
-                            px-5 py-3
-                            text-sm font-semibold text-white
-                            shadow-[0_8px_25px_rgba(15,23,42,0.16)]
-                            transition-all duration-200
-                            hover:-translate-y-0.5
-                            hover:bg-slate-800
-                            hover:shadow-[0_12px_30px_rgba(15,23,42,0.22)]
-                        "
-                    >
-                        مشاوره و خرید
+                    {auth.user
+                        ?
+                        <Button
+                            variant={'outline'}
+                            asChild>
+                            <Link
+                                href={login.index()}>
+                                حساب کاربری
+                            </Link>
+                        </Button>
+                        :
+                        <Button
+                            variant={'outline'}
+                            asChild>
+                            <Link
+                                href={login.index()}>
+                                ورود/ثبت نام
+                            </Link>
+                        </Button>
+                    }
 
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="size-4"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                        >
-                            <path d="M5 12h13"/>
-                            <path d="m13 6 6 6-6 6"/>
-                        </svg>
-                    </Link>
+
                 </div>
             </div>
         </header>
