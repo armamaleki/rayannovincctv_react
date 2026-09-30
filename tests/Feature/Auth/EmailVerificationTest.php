@@ -57,7 +57,7 @@ test('email is not verified with invalid hash', function () {
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
-test('email is not verified with invalid user id', function () {
+test('email is not verified with invalid users id', function () {
     $user = User::factory()->unverified()->create();
 
     Event::fake();
@@ -74,7 +74,7 @@ test('email is not verified with invalid user id', function () {
     expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
 });
 
-test('verified user is redirected to dashboard from verification prompt', function () {
+test('verified users is redirected to dashboard from verification prompt', function () {
     $user = User::factory()->create();
 
     Event::fake();
@@ -85,7 +85,7 @@ test('verified user is redirected to dashboard from verification prompt', functi
     $response->assertRedirect('/dashboard');
 });
 
-test('already verified user visiting verification link is redirected without firing event again', function () {
+test('already verified users visiting verification link is redirected without firing event again', function () {
     $user = User::factory()->create();
     $team = $user->personalTeam();
 

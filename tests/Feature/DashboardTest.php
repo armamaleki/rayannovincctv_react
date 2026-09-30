@@ -25,7 +25,7 @@ test('authenticated users can visit the dashboard', function () {
     $response->assertOk();
 });
 
-test('dashboard includes pending invitations for the authenticated user', function () {
+test('dashboard includes pending invitations for the authenticated users', function () {
     $owner = User::factory()->create(['name' => 'Taylor Otwell']);
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create(['name' => 'Laravel Team']);

@@ -63,7 +63,7 @@ Route::prefix('/dashboard')->middleware(['auth', 'verified'])->group(function ()
     Route::get('/', DashboardController::class)->name('index');
 });
 
-Route::get('/auth', [AuthController::class, 'index'])->name('login.index')->middleware('guest');
+Route::get('/auth', [AuthController::class, 'index'])->name('login')->middleware('guest');
 Route::post('login', [AuthController::class, 'store'])->name('login.store');
 Route::post('verify', [AuthController::class, 'verify'])->name('login.verify');
 Route::middleware('auth')->group(function () {

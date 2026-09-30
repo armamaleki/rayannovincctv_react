@@ -32,7 +32,7 @@ class EnsureTeamMembership
     }
 
     /**
-     * Ensure the given user has at least the given role, if applicable.
+     * Ensure the given users has at least the given role, if applicable.
      */
     protected function ensureTeamMemberHasRequiredRole(User $user, Team $team, ?string $minimumRole): void
     {

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\URL;
 trait HasTeams
 {
     /**
-     * Get all of the teams the user belongs to.
+     * Get all of the teams the users belongs to.
      *
      * @return BelongsToMany<Team, $this>
      */
@@ -30,7 +30,7 @@ trait HasTeams
     }
 
     /**
-     * Get all of the teams the user owns.
+     * Get all of the teams the users owns.
      *
      * @return HasManyThrough<Team, Membership, $this>
      */
@@ -47,7 +47,7 @@ trait HasTeams
     }
 
     /**
-     * Get all of the memberships for the user.
+     * Get all of the memberships for the users.
      *
      * @return HasMany<Membership, $this>
      */
@@ -57,7 +57,7 @@ trait HasTeams
     }
 
     /**
-     * Get the user's current team.
+     * Get the users's current team.
      *
      * @return BelongsTo<Team, $this>
      */
@@ -67,7 +67,7 @@ trait HasTeams
     }
 
     /**
-     * Get the user's personal team.
+     * Get the users's personal team.
      */
     public function personalTeam(): ?Team
     {
@@ -94,7 +94,7 @@ trait HasTeams
     }
 
     /**
-     * Determine if the user belongs to the given team.
+     * Determine if the users belongs to the given team.
      */
     public function belongsToTeam(Team $team): bool
     {
@@ -102,7 +102,7 @@ trait HasTeams
     }
 
     /**
-     * Determine if the given team is the user's current team.
+     * Determine if the given team is the users's current team.
      */
     public function isCurrentTeam(Team $team): bool
     {
@@ -110,7 +110,7 @@ trait HasTeams
     }
 
     /**
-     * Determine if the user is the owner of the given team.
+     * Determine if the users is the owner of the given team.
      */
     public function ownsTeam(Team $team): bool
     {
@@ -118,7 +118,7 @@ trait HasTeams
     }
 
     /**
-     * Get the user's role on the given team.
+     * Get the users's role on the given team.
      */
     public function teamRole(Team $team): ?TeamRole
     {
@@ -129,7 +129,7 @@ trait HasTeams
     }
 
     /**
-     * Get the user's teams as a collection of UserTeam objects.
+     * Get the users's teams as a collection of UserTeam objects.
      *
      * @return Collection<int, UserTeam>
      */
@@ -143,7 +143,7 @@ trait HasTeams
     }
 
     /**
-     * Get the user's team as a UserTeam object.
+     * Get the users's team as a UserTeam object.
      */
     public function toUserTeam(Team $team): UserTeam
     {
@@ -187,7 +187,7 @@ trait HasTeams
     }
 
     /**
-     * Determine if the user has the given permission on the team.
+     * Determine if the users has the given permission on the team.
      */
     public function hasTeamPermission(Team $team, TeamPermission $permission): bool
     {

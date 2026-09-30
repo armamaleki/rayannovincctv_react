@@ -305,7 +305,7 @@ export default function HomeHeader() {
                             variant={'outline'}
                             asChild>
                             <Link
-                                href={login.index()}>
+                                href={''}>
                                 حساب کاربری
                             </Link>
                         </Button>
@@ -314,7 +314,7 @@ export default function HomeHeader() {
                             variant={'outline'}
                             asChild>
                             <Link
-                                href={login.index()}>
+                                href={''}>
                                 ورود/ثبت نام
                             </Link>
                         </Button>

@@ -196,7 +196,7 @@ test('team invitations can be accepted', function () {
     expect($invitation->fresh()->accepted_at)->not->toBeNull();
 });
 
-test('team invitations can be declined by the invited user', function () {
+test('team invitations can be declined by the invited users', function () {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -220,7 +220,7 @@ test('team invitations can be declined by the invited user', function () {
     ]);
 });
 
-test('team invitations cannot be declined by uninvited user', function () {
+test('team invitations cannot be declined by uninvited users', function () {
     $owner = User::factory()->create();
     $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);
     $team = Team::factory()->create();
@@ -268,7 +268,7 @@ test('accepted team invitations cannot be declined', function () {
     ]);
 });
 
-test('team invitations cannot be accepted by uninvited user', function () {
+test('team invitations cannot be accepted by uninvited users', function () {
     $owner = User::factory()->create();
     $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);
     $team = Team::factory()->create();

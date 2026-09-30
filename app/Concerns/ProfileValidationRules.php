@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 trait ProfileValidationRules
 {
     /**
-     * Get the validation rules used to validate user profiles.
+     * Get the validation rules used to validate users profiles.
      *
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
@@ -22,7 +22,7 @@ trait ProfileValidationRules
     }
 
     /**
-     * Get the validation rules used to validate user names.
+     * Get the validation rules used to validate users names.
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
@@ -32,7 +32,7 @@ trait ProfileValidationRules
     }
 
     /**
-     * Get the validation rules used to validate user emails.
+     * Get the validation rules used to validate users emails.
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */

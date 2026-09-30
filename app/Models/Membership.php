@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Team $team
- * @property-read User $user
+ * @property-read User $users
  */
 #[Fillable(['team_id', 'user_id', 'role'])]
 class Membership extends Pivot
@@ -46,7 +46,7 @@ class Membership extends Pivot
     }
 
     /**
-     * Get the user that belongs to this membership.
+     * Get the users that belongs to this membership.
      *
      * @return BelongsTo<User, $this>
      */

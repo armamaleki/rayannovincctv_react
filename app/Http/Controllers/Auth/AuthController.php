@@ -27,7 +27,6 @@ class AuthController extends Controller
         //        $otp = rand(10000, 99999);
         $otp = 12345;
         Cache::put('otp_'.$data['phone'], $otp, now()->addMinutes(2));
-
         $user = User::firstOrCreate(
             ['phone' => $data['phone']],
             [
@@ -35,17 +34,17 @@ class AuthController extends Controller
                 'password' => Hash::make(Str::random(5)),
             ]
         );
-
-        if (! $user->hasRole('user')) {
-            $role = ROL::where('name', 'user')->first();
+        if (! $user->hasRole('users')) {
+            $role = ROL::where('name', 'users')->first();
             if ($role) {
                 $user->assignRole($role);
             }
         }
-
-        $request->session()->regenerate();
-
-        return back()->with('otp_sent', true)->with('otp_code', $otp);
+//        $request->session()->regenerate();
+        return redirect()
+            ->route('login')
+            ->with('otp_sent', true)
+            ->with('otp_code', $otp);
 
     }
 

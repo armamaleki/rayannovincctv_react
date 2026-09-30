@@ -9,7 +9,7 @@ use App\Models\User;
 class TeamPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the users can view any models.
      */
     public function viewAny(User $user): bool
     {
@@ -17,7 +17,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the users can view the model.
      */
     public function view(User $user, Team $team): bool
     {
@@ -25,7 +25,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the users can create models.
      */
     public function create(User $user): bool
     {
@@ -33,7 +33,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the users can update the model.
      */
     public function update(User $user, Team $team): bool
     {
@@ -41,7 +41,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can leave the team.
+     * Determine whether the users can leave the team.
      */
     public function leave(User $user, Team $team): bool
     {
@@ -51,7 +51,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can add a member to the team.
+     * Determine whether the users can add a member to the team.
      */
     public function addMember(User $user, Team $team): bool
     {
@@ -59,7 +59,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can update a member's role in the team.
+     * Determine whether the users can update a member's role in the team.
      */
     public function updateMember(User $user, Team $team): bool
     {
@@ -67,7 +67,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can remove a member from the team.
+     * Determine whether the users can remove a member from the team.
      */
     public function removeMember(User $user, Team $team): bool
     {
@@ -75,7 +75,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can invite members to the team.
+     * Determine whether the users can invite members to the team.
      */
     public function inviteMember(User $user, Team $team): bool
     {
@@ -83,7 +83,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can cancel invitations.
+     * Determine whether the users can cancel invitations.
      */
     public function cancelInvitation(User $user, Team $team): bool
     {
@@ -91,7 +91,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the users can delete the model.
      */
     public function delete(User $user, Team $team): bool
     {

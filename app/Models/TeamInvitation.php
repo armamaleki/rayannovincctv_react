@@ -56,7 +56,7 @@ class TeamInvitation extends Model
     }
 
     /**
-     * Get the user who sent the invitation.
+     * Get the users who sent the invitation.
      *
      * @return BelongsTo<User, $this>
      */
