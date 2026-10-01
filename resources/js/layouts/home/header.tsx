@@ -10,7 +10,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import login from "@/routes/login";
+import {login} from "@/routes";
+
 
 
 export default function HomeHeader() {
@@ -74,6 +75,7 @@ export default function HomeHeader() {
         },
     ]
     const {auth} = usePage().props;
+
     return (
         <header
             className="relative z-50 border-b border-slate-200/70 bg-sky-100 dark:bg-gray-900 transition-all  backdrop-blur-xl">
@@ -314,7 +316,7 @@ export default function HomeHeader() {
                             variant={'outline'}
                             asChild>
                             <Link
-                                href={''}>
+                                href={login()}>
                                 ورود/ثبت نام
                             </Link>
                         </Button>
