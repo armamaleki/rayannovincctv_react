@@ -20,8 +20,5 @@ class AttributeValue extends Model
     {
         return $this->belongsTo(Attribute::class);
     }
-    public function scopeLatestUpdated($query)
-    {
-        return $query->orderBy('updated_at', 'desc');
-    }
+
 }

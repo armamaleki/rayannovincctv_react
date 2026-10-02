@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    /** @use HasFactory<\Database\Factories\OrderFactory> */
-    use HasFactory;
     protected $fillable = [
         'user_id',
         'address_id',
@@ -31,8 +28,10 @@ class Order extends Model
     {
         return $this->belongsTo(Address::class);
     }
-    public function scopeLatestUpdated($query)
+    protected static function booted(): void
     {
-        return $query->orderBy('updated_at', 'desc');
+        static::addGlobalScope('latest', function ($query) {
+            $query->latest('id');
+        });
     }
 }

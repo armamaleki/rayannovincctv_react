@@ -25,9 +25,10 @@ class Attribute extends Model
     {
         return $this->hasMany(AttributeValue::class);
     }
-
-    public function scopeLatestUpdated($query)
+    protected static function booted(): void
     {
-        return $query->orderBy('updated_at', 'desc');
+        static::addGlobalScope('latest', function ($query) {
+            $query->latest('id');
+        });
     }
 }

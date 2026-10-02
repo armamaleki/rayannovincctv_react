@@ -12,8 +12,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Article extends Model implements HasMedia
 {
-
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     public function registerMediaConversions(?Media $media = null): void
     {
@@ -47,8 +46,10 @@ class Article extends Model implements HasMedia
         return $this->belongsTo(User::class);
     }
 
-    public function scopeLatestUpdated($query)
+    protected static function booted(): void
     {
-        return $query->orderBy('updated_at', 'desc');
+        static::addGlobalScope('latest', function ($query) {
+            $query->latest('id');
+        });
     }
 }

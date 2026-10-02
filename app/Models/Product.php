@@ -13,8 +13,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Product extends Model implements HasMedia
 {
-
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     public function registerMediaConversions(?Media $media = null): void
     {
@@ -26,17 +25,21 @@ class Product extends Model implements HasMedia
             ->watermark(public_path('assets/images/watermark.png'))
             ->nonQueued();
     }
+
     public function categories()
     {
         return $this->belongsToMany(ProductCategory::class, 'product_category', 'product_id', 'product_category_id');
     }
 
-
     public static function boot()
     {
         parent::boot();
+
         static::creating(function ($product) {
-            $lastProduct = DB::table('products')->latest()->first();
+            $lastProduct = DB::table('products')
+                ->orderByDesc('id')
+                ->first();
+
             if ($lastProduct && $lastProduct->sku !== null) {
                 $product->sku = $lastProduct->sku + 1;
             } else {
@@ -49,7 +52,6 @@ class Product extends Model implements HasMedia
     {
         return 'slug';
     }
-
 
     protected $fillable = [
         'name',
@@ -89,12 +91,15 @@ class Product extends Model implements HasMedia
 
     public function grantie()
     {
-        return $this->belongsTo(Granite::class , 'granite_id');
+        return $this->belongsTo(Granite::class, 'granite_id');
     }
 
-
-    public function scopeLatestUpdated($query)
+    protected static function booted(): void
     {
-        return $query->orderBy('updated_at', 'desc');
+        static::addGlobalScope('latest', function ($query) {
+            $query
+                ->orderByRaw('CASE WHEN price IS NULL OR price = 0 THEN 1 ELSE 0 END')
+                ->latest('id');
+        });
     }
 }

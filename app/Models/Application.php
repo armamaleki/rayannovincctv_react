@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Application extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasFactory, InteractsWithMedia;
     protected $fillable = [
         'name',
         'link',
@@ -34,8 +35,5 @@ class Application extends Model implements HasMedia
     {
         return $this->morphToMany(Tag::class, 'taggable');
     }
-    public function scopeLatestUpdated($query)
-    {
-        return $query->orderBy('updated_at', 'desc');
-    }
+
 }

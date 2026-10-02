@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Tag extends Model
 {
-    protected $fillable = ['name'];
+    use HasFactory;
 
-    public function taggables()
+    protected $fillable = [
+        'name',
+    ];
+
+    protected static function booted(): void
     {
-        return $this->morphedByMany(Application::class, 'taggable');
+        static::addGlobalScope('latest', function ($query) {
+            $query->latest('id');
+        });
     }
 }

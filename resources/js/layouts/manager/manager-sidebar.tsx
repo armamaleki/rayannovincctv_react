@@ -45,37 +45,37 @@ export function ManagerSidebar() {
         },
         {
             title: 'دسترسی ها',
-            href: manager.index(),
+            href: manager.role.index(),
             icon: Shield,
         },
         {
             title: 'سفارش ها',
-            href: manager.index(),
+            href: manager.orders.index(),
             icon: ListOrdered,
         },
         {
             title: 'مقالات',
-            href: manager.index(),
+            href: manager.article.index(),
             icon: PaperclipIcon,
         },
         {
             title: 'محصولات',
-            href: manager.index(),
+            href: manager.product.index(),
             icon: ShoppingBagIcon,
         },
         {
             title: 'ویژگی محصولات',
-            href: manager.index(),
+            href: manager.attribute.index(),
             icon: BatteryIcon,
         },
         {
             title: 'مقدار های ویژگی',
-            href: manager.index(),
+            href: manager.value.index(),
             icon: BatteryFullIcon,
         },
         {
             title: 'دسته بندی محصولات',
-            href: manager.index(),
+            href: manager.productCategories.index(),
             icon: BadgeIcon,
         },
         {
@@ -85,22 +85,22 @@ export function ManagerSidebar() {
         },
         {
             title: 'دانلود نرم افزار',
-            href: manager.index(),
+            href: manager.application.index(),
             icon: AppleIcon,
         },
         {
             title: 'لیست قیمت',
-            href: manager.index(),
+            href: manager.priceList.index(),
             icon: ListOrdered,
         },
         {
             title: 'تگ ها',
-            href: manager.index(),
+            href: manager.tags.index(),
             icon: BadgeXIcon,
         },
         {
             title: 'گارانتی',
-            href: manager.index(),
+            href: manager.granite.index(),
             icon: ChartBarIncreasingIcon,
         },
     ];

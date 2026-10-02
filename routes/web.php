@@ -60,7 +60,7 @@ Route::prefix('/')->name('client.')->group(function () {
 Route::inertia('/', 'welcome')->name('home');
 
 Route::prefix('/dashboard')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('/', DashboardController::class)->name('index');
+//    Route::get('/', DashboardController::class)->name('index');
 });
 
 Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');

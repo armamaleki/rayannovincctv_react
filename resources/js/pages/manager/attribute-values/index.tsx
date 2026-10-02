@@ -1,13 +1,22 @@
 import ManagerLayout from "@/layouts/manager/manager-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { InfiniteScroll, Link } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import {
     Eye,
     Pencil,
     Plus,
-    Package,
+    Tags,
 } from "lucide-react";
 import {
     Table,
@@ -21,18 +30,22 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import TableSearch from "@/components/table-search";
 import manager from "@/routes/manager";
 
-type Product = {
+type Attribute = {
     id: number;
     name: string | null;
-    slug: string | null;
-    sku: number | null;
-    price: number | null;
-    status: "deactivate" | "active" | "check" | null;
+};
+
+type AttributeValue = {
+    id: number;
+    value: string | null;
+    sort_order: number | null;
+    attribute_id: number | null;
+    attribute?: Attribute | null;
     created_at?: string | null;
 };
 
-type PaginatedProducts = {
-    data: Product[];
+type PaginatedAttributeValues = {
+    data: AttributeValue[];
     links?: {
         first?: string | null;
         last?: string | null;
@@ -47,81 +60,41 @@ type PaginatedProducts = {
 };
 
 type Props = {
-    list_of_all_products: PaginatedProducts;
+    list_of_all_attribute_values: PaginatedAttributeValues;
 };
 
-function formatPrice(price: number | null) {
-    if (!price) {
-        return "بدون قیمت";
-    }
-
-    return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
-}
-
-function statusLabel(status: Product["status"]) {
-    switch (status) {
-        case "active":
-            return "فعال";
-
-        case "deactivate":
-            return "غیرفعال";
-
-        case "check":
-            return "در انتظار بررسی";
-
-        default:
-            return "-";
-    }
-}
-
-function statusClass(status: Product["status"]) {
-    switch (status) {
-        case "active":
-            return "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400";
-
-        case "deactivate":
-            return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400";
-
-        case "check":
-            return "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400";
-
-        default:
-            return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400";
-    }
-}
-
 export default function Index({
-                                  list_of_all_products,
+                                  list_of_all_attribute_values,
                               }: Props) {
     return (
         <ManagerLayout>
             <div className="space-y-6" dir="rtl">
                 <Card>
                     <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2">
-                                <Package className="size-5" />
-                                محصولات
-                            </CardTitle>
-                        </div>
+                        <CardTitle className="flex items-center gap-2">
+                            <Tags className="size-5" />
+                            مقادیر ویژگی
+                        </CardTitle>
 
                         <div className="flex items-center gap-2">
                             <TableSearch
-                                action={manager.product.index()}
+                                action={'manager.attributeValue.index()'}
                             />
 
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button asChild>
-                                        <Link href={manager.product.create()}>
+                                        <Link
+                                            href={'manager.attributeValue.create()'}
+                                        >
                                             <Plus className="size-4" />
-                                            افزودن محصول
+                                            افزودن مقدار
                                         </Link>
                                     </Button>
                                 </TooltipTrigger>
 
                                 <TooltipContent>
-                                    افزودن محصول جدید
+                                    افزودن مقدار ویژگی
                                 </TooltipContent>
                             </Tooltip>
                         </div>
@@ -129,7 +102,7 @@ export default function Index({
 
                     <CardContent>
                         <InfiniteScroll
-                            data="list_of_all_products"
+                            data="list_of_all_attribute_values"
                             buffer={300}
                             preserveUrl
                         >
@@ -142,19 +115,15 @@ export default function Index({
                                             </TableHead>
 
                                             <TableHead className="text-right">
-                                                نام محصول
+                                                مقدار
                                             </TableHead>
 
                                             <TableHead className="text-right">
-                                                SKU
+                                                ویژگی
                                             </TableHead>
 
                                             <TableHead className="text-right">
-                                                قیمت
-                                            </TableHead>
-
-                                            <TableHead className="text-right">
-                                                وضعیت
+                                                ترتیب
                                             </TableHead>
 
                                             <TableHead className="text-right">
@@ -168,52 +137,46 @@ export default function Index({
                                     </TableHeader>
 
                                     <TableBody>
-                                        {list_of_all_products.data.length > 0 ? (
-                                            list_of_all_products.data.map(
-                                                (product) => (
-                                                    <TableRow key={product.id}>
+                                        {list_of_all_attribute_values.data
+                                            .length > 0 ? (
+                                            list_of_all_attribute_values.data.map(
+                                                (attributeValue) => (
+                                                    <TableRow
+                                                        key={
+                                                            attributeValue.id
+                                                        }
+                                                    >
                                                         <TableCell>
-                                                            {product.id}
+                                                            {
+                                                                attributeValue.id
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell className="font-medium">
-                                                            {product.name ?? "-"}
+                                                            {
+                                                                attributeValue.value
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell>
-                                                            {product.sku ?? "-"}
+                                                            {
+                                                                attributeValue
+                                                                    .attribute
+                                                                    ?.name ?? "-"
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell>
-                                                            <span
-                                                                className={
-                                                                    product.price
-                                                                        ? "font-medium"
-                                                                        : "text-muted-foreground"
-                                                                }
-                                                            >
-                                                                {formatPrice(
-                                                                    product.price
-                                                                )}
-                                                            </span>
+                                                            {
+                                                                attributeValue.sort_order ??
+                                                                "-"
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell>
-                                                            <span
-                                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(
-                                                                    product.status
-                                                                )}`}
-                                                            >
-                                                                {statusLabel(
-                                                                    product.status
-                                                                )}
-                                                            </span>
-                                                        </TableCell>
-
-                                                        <TableCell>
-                                                            {product.created_at
+                                                            {attributeValue.created_at
                                                                 ? new Date(
-                                                                    product.created_at
+                                                                    attributeValue.created_at
                                                                 ).toLocaleDateString(
                                                                     "fa-IR"
                                                                 )
@@ -240,7 +203,7 @@ export default function Index({
                                                                     </TooltipTrigger>
 
                                                                     <TooltipContent>
-                                                                        مشاهده محصول
+                                                                        مشاهده
                                                                     </TooltipContent>
                                                                 </Tooltip>
 
@@ -254,9 +217,7 @@ export default function Index({
                                                                             asChild
                                                                         >
                                                                             <Link
-                                                                                href={manager.product.edit(
-                                                                                    product.id
-                                                                                )}
+                                                                                href={''}
                                                                             >
                                                                                 <Pencil className="size-4" />
                                                                             </Link>
@@ -264,7 +225,7 @@ export default function Index({
                                                                     </TooltipTrigger>
 
                                                                     <TooltipContent>
-                                                                        ویرایش محصول
+                                                                        ویرایش
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </ButtonGroup>
@@ -275,10 +236,10 @@ export default function Index({
                                         ) : (
                                             <TableRow>
                                                 <TableCell
-                                                    colSpan={7}
+                                                    colSpan={6}
                                                     className="h-32 text-center"
                                                 >
-                                                    محصولی پیدا نشد.
+                                                    مقداری پیدا نشد.
                                                 </TableCell>
                                             </TableRow>
                                         )}

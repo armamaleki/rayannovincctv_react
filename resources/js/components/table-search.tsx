@@ -27,6 +27,7 @@ export default function TableSearch({ action }:ManagerSearchBoxProps) {
                         <InputGroupInput
                             name={'q'}
                             defaultValue={q}
+                            autoFocus={true}
                             placeholder="جستجو..." />
                         <InputGroupAddon
                             align="inline-end">
