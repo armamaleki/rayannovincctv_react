@@ -5,7 +5,6 @@ use App\Http\Controllers\Client\ArticleController;
 use App\Http\Controllers\Client\ProductCategoryController;
 use App\Http\Controllers\Client\StoreController;
 use App\Http\Controllers\Client\WarrantyRegistrationController;
-use App\Http\Controllers\DashboardController;
 use App\Models\Application;
 use App\Models\PriceList;
 use App\Models\Tag;
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/')->name('client.')->group(function () {
     Route::prefix('/')->name('store.')->group(function () {
         Route::get('/store', [StoreController::class, 'index'])->name('index');
+        Route::get('/store/{product}', [StoreController::class, 'show'])->name('show');
     });
     Route::prefix('/product-categories')->name('product-categories.')->group(function () {
         Route::get('/', [ProductCategoryController::class, 'index'])->name('index');

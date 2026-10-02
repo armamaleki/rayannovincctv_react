@@ -98,8 +98,10 @@ class Product extends Model implements HasMedia
     {
         static::addGlobalScope('latest', function ($query) {
             $query
-                ->orderByRaw('CASE WHEN price IS NULL OR price = 0 THEN 1 ELSE 0 END')
-                ->latest('id');
+                ->orderByRaw(
+                    'CASE WHEN products.price IS NULL OR products.price = 0 THEN 1 ELSE 0 END'
+                )
+                ->orderByDesc('products.id');
         });
     }
 }
