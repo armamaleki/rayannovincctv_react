@@ -5,6 +5,7 @@ use App\Http\Controllers\Client\ArticleController;
 use App\Http\Controllers\Client\ProductCategoryController;
 use App\Http\Controllers\Client\StoreController;
 use App\Http\Controllers\Client\WarrantyRegistrationController;
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Models\Application;
 use App\Models\PriceList;
 use App\Models\Tag;
@@ -79,16 +80,16 @@ Route::prefix('/')->name('client.')->group(function () {
 
 Route::inertia('/', 'welcome')->name('home');
 
-Route::prefix('/dashboard')->middleware(['auth', 'verified'])->group(function () {
-//    Route::get('/', DashboardController::class)->name('index');
-});
-
 Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'store'])->name('login.store');
 Route::post('/login/verify', [AuthController::class, 'verify'])->name('login.verify');
+
+Route::prefix('/dashboard')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/',[ DashboardController::class , 'index'])->name('index');
+});
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';
