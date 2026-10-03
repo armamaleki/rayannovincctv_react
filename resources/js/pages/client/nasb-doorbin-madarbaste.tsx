@@ -1,962 +1,309 @@
+import { Head } from '@inertiajs/react';
 import HomeLayout from "@/layouts/home/home-layout";
-import {
-    ArrowLeft,
-    ArrowDown,
-    BadgeCheck,
-    Camera,
-    Check,
-    CheckCircle2,
-    ChevronDown,
-    CircleHelp,
-    Clock3,
-    Cpu,
-    Eye,
-    FileCheck2,
-    HardDrive,
-    Home,
-    Layers3,
-    MapPin,
-    Network,
-    Phone,
-    PlugZap,
-    ScanLine,
-    Search,
-    ShieldCheck,
-    Settings2,
-    Signal,
-    Sparkles,
-    Target,
-    Wrench,
-    Zap,
-} from "lucide-react";
 import { useState } from "react";
+import { Check, Phone, MapPin, ShieldCheck, Eye, Wrench, ChevronDown, Star, ArrowLeft, Clock, FileCheck, Video } from "lucide-react";
 
-const installationSteps = [
-    {
-        number: "01",
-        title: "بازدید و بررسی محل",
-        description:
-            "محل پروژه، ورودی‌ها، نقاط حساس، مسیر کابل‌کشی، شرایط نور و محل قرارگیری تجهیزات بررسی می‌شود.",
-        icon: <MapPin />,
-    },
-    {
-        number: "02",
-        title: "طراحی محل دوربین‌ها",
-        description:
-            "با توجه به زاویه دید، ارتفاع، فاصله و هدف نظارتی، بهترین نقاط برای نصب دوربین مشخص می‌شود.",
-        icon: <Target />,
-    },
-    {
-        number: "03",
-        title: "انتخاب تجهیزات",
-        description:
-            "دوربین، دستگاه ضبط، هارد، سوئیچ شبکه، تجهیزات PoE و سایر تجهیزات موردنیاز متناسب با پروژه انتخاب می‌شوند.",
-        icon: <Cpu />,
-    },
-    {
-        number: "04",
-        title: "کابل‌کشی و زیرساخت",
-        description:
-            "کابل‌کشی شبکه و برق با رعایت مسیر مناسب، استانداردهای اجرایی و دسترسی مناسب برای تعمیرات انجام می‌شود.",
-        icon: <Network />,
-    },
-    {
-        number: "05",
-        title: "نصب و راه‌اندازی",
-        description:
-            "دوربین‌ها، دستگاه ضبط و تجهیزات شبکه نصب شده و تنظیمات اولیه سیستم انجام می‌شود.",
-        icon: <Wrench />,
-    },
-    {
-        number: "06",
-        title: "تنظیم و تست نهایی",
-        description:
-            "زاویه دوربین‌ها، کیفیت تصویر، ضبط، دید در شب، شبکه و دسترسی نرم‌افزاری بررسی و تست می‌شوند.",
-        icon: <BadgeCheck />,
-    },
+const pains = [
+    { emoji: "🏪", title: "سرقت از مغازه", desc: "آخر شب کرکره را پایین می‌کشی ولی استرس دخل ولت نمی‌کند. بدون مدرک تصویری، پیگیری هم بی‌فایده است." },
+    { emoji: "👀", title: "بی‌خبری از محل کار", desc: "وقتی نیستی نمی‌دانی پرسنل چطور برخورد می‌کنند. فقط حدس می‌زنی، نمی‌بینی." },
+    { emoji: "📦", title: "ناامنی انبار و سوله", desc: "نقطه کور زیاد، نگهبان هم ۲۴ ساعته چشم ندارد. یک سرقت کوچک، ضرر چند ماهت می‌شود." },
+    { emoji: "🏠", title: "نگرانی از خانه", desc: "بچه، سالمند تنها یا خانه خالی در مسافرت. وقتی بیرونی، دلت پیش خانه است." },
 ];
 
-const cameraTypes = [
-    {
-        title: "دوربین دام",
-        description:
-            "انتخابی مناسب برای محیط‌های داخلی، فروشگاه‌ها، ادارات و فضاهایی که ظاهر تجهیزات اهمیت دارد.",
-        icon: <Camera />,
-        tags: ["فضای داخلی", "فروشگاه", "اداری"],
-    },
-    {
-        title: "دوربین بولت",
-        description:
-            "مناسب برای نصب در محیط‌های بیرونی و فضاهایی که نیاز به برد دید مناسب و مقاومت بیشتر دارند.",
-        icon: <ScanLine />,
-        tags: ["فضای بیرونی", "پارکینگ", "محوطه"],
-    },
-    {
-        title: "دوربین PTZ",
-        description:
-            "برای پروژه‌هایی که نیاز به چرخش، زوم و کنترل از راه دور دارند، گزینه مناسبی محسوب می‌شود.",
-        icon: <Eye />,
-        tags: ["محوطه بزرگ", "زوم", "کنترل از راه دور"],
-    },
-    {
-        title: "دوربین تحت شبکه",
-        description:
-            "دوربین‌های IP با انتقال تصویر روی شبکه که برای پروژه‌های مدرن و مقیاس‌پذیر استفاده می‌شوند.",
-        icon: <Signal />,
-        tags: ["IP", "شبکه", "PoE"],
-    },
+const services = [
+    { tag: "منزل و آپارتمان", title: "نظارت روی خانه، از راه دور", desc: "۲ تا ۴ دوربین برای ورودی، پارکینگ و راهرو + انتقال تصویر روی موبایل.", img: "/assets/images/home-cctv.jpeg" },
+    { tag: "مغازه و رستوران", title: "کنترل دخل و تردد مشتری", desc: "پوشش صندوق، ویترین و انبار کوچک + مدل صدادار، بدون خرابی دکور.", img: "/assets/images/shop-cctv.jpg" },
+    { tag: "کارخانه و انبار", title: "پوشش سوله بدون نقطه کور", desc: "۸ تا ۳۲+ دوربین تحت شبکه، دید در شب قوی، رک و سوئیچ استاندارد.", img: "/assets/images/factory-cctv.jpeg" },
+    { tag: "اداره و سازمان", title: "پروژه سازمانی و بانکی", desc: "فاکتور رسمی، هایک‌ویژن و داهوا اصلی، قرارداد پشتیبانی.", img: "/assets/images/office-cctv.jpg" },
 ];
 
-const projectTypes = [
-    "خانه و ساختمان مسکونی",
-    "دفتر و شرکت",
-    "فروشگاه و مجتمع تجاری",
-    "کارخانه و کارگاه",
-    "انبار و سوله",
-    "پارکینگ و محوطه",
+const projects = [
+    { title: "فروشگاه موبایل ونوس", loc: "یافت‌آباد", spec: "۷ دوربین هایک‌ویژن", img: "/assets/images/venus.jpg" },
+    { title: "انبار آهن مرکز", loc: "چهار دانگه", spec: "۱۴ دوربین تحت شبکه", img: "/assets/images/ahan.webp" },
+    { title: "بانک دی", loc: "تهران · فاکتور رسمی", spec: "۳۲ دوربین سازمانی", img: "/assets/images/day-bank.jpg" },
+    { title: "ویلای لواسان", loc: "لواسان · همراه دزدگیر", spec: "۵ دوربین + دزدگیر", img: "/assets/images/vila.jpg" },
 ];
 
 const faqs = [
-    {
-        question: "هزینه نصب دوربین مداربسته چقدر است؟",
-        answer:
-            "هزینه نصب به تعداد دوربین، نوع دوربین، متراژ کابل‌کشی، شرایط محل، نوع دستگاه ضبط و تجهیزات موردنیاز بستگی دارد. پس از بررسی پروژه می‌توان هزینه دقیق‌تری ارائه کرد.",
-    },
-    {
-        question: "آیا قبل از نصب از محل پروژه بازدید می‌شود؟",
-        answer:
-            "بله. برای پروژه‌هایی که نیاز به طراحی و کابل‌کشی دارند، بررسی محل کمک می‌کند تعداد دوربین‌ها، نقاط نصب و مسیر اجرای زیرساخت با دقت بیشتری مشخص شود.",
-    },
-    {
-        question: "نصب دوربین IP بهتر است یا آنالوگ؟",
-        answer:
-            "انتخاب بین IP و آنالوگ به بودجه، زیرساخت شبکه، کیفیت موردنیاز و ابعاد پروژه بستگی دارد. برای پروژه‌های جدید معمولاً سیستم‌های تحت شبکه انعطاف‌پذیری بیشتری در اختیار قرار می‌دهند.",
-    },
-    {
-        question: "آیا امکان مشاهده تصاویر دوربین از موبایل وجود دارد؟",
-        answer:
-            "در صورت پشتیبانی تجهیزات و وجود اتصال مناسب به شبکه، امکان راه‌اندازی مشاهده تصاویر روی موبایل و سایر دستگاه‌های مجاز وجود دارد.",
-    },
-    {
-        question: "کابل‌کشی دوربین‌ها هم توسط شما انجام می‌شود؟",
-        answer:
-            "بله، اجرای مسیر کابل‌کشی و اتصال تجهیزات می‌تواند به عنوان بخشی از فرآیند نصب و راه‌اندازی پروژه انجام شود.",
-    },
-    {
-        question: "بعد از نصب، تنظیمات دوربین هم انجام می‌شود؟",
-        answer:
-            "بله. زاویه دوربین، کیفیت تصویر، ضبط، شبکه، دید در شب و سایر تنظیمات موردنیاز در مرحله راه‌اندازی و تست بررسی می‌شوند.",
-    },
+    { q: "هزینه نصب دوربین چقدر است؟", a: "به تعداد دوربین، مدل، متراژ کابل و هارد بستگی دارد. در بازدید رایگان پیش‌فاکتور کتبی با ریز مدل‌ها می‌گیرید. حدود قیمت را در بخش پکیج‌های همین صفحه ببینید." },
+    { q: "هایک‌ویژن بهتر است یا داهوا؟", a: "هر دو برند اصلی و درجه‌یک‌اند. هایک‌ویژن تنوع و خدمات پس از فروش قوی‌تری دارد، داهوا در بعضی مدل‌ها به‌صرفه‌تر است. هر دو را با گارانتی اصلی و قابل استعلام می‌دهیم." },
+    { q: "انتقال تصویر روی موبایل دارید؟", a: "بله، روی همه نصب‌ها فعال می‌کنیم. هرجا باشید زنده می‌بینید و بازپخش می‌کنید. نصب اپ و آموزش کامل موقع تحویل انجام می‌شود." },
+    { q: "گارانتی بعد از نصب چطور است؟", a: "جنس اصلی با گارانتی شرکتی + ضمانت اجرایی نصب. پشتیبانی تلفنی و در صورت نیاز اعزام داریم. برای سازمان‌ها قرارداد سالانه می‌بندیم." },
+    { q: "نصب چقدر طول می‌کشد؟ کثیف‌کاری دارد؟", a: "منزل و مغازه همان روز (۳ تا ۶ ساعت)، کارخانه ۲ تا ۵ روز. با داکت‌کشی مرتب، بدون تخریب و تحویل تمیز." },
 ];
 
-export default function NasbDoorbinMadarbaste() {
-    const [openFaq, setOpenFaq] = useState<number | null>(0);
-
+export default function InstallCCTV() {
+    const [open, setOpen] = useState(0);
     return (
         <HomeLayout>
-            <main
-                dir="rtl"
-                className="min-h-screen overflow-hidden bg-[#050b14] text-white"
-            >
-                {/* Background */}
-                <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                    <div className="absolute right-[-300px] top-[-250px] size-[650px] rounded-full bg-cyan-500/10 blur-[160px]" />
-                    <div className="absolute bottom-[-300px] left-[-250px] size-[650px] rounded-full bg-blue-600/10 blur-[170px]" />
+            <Head title="نصب دوربین مداربسته | رایان نوین" />
+            <main dir="rtl" className="aegis-site min-h-screen overflow-hidden bg-[#e8edf1] text-[#152434] dark:bg-[#07111a] dark:text-white">
 
-                    <div
-                        className="absolute inset-0 opacity-[0.025]"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)",
-                            backgroundSize: "50px 50px",
-                        }}
-                    />
-                </div>
-
-                <div className="relative">
-
-                    {/* ================================================= */}
-                    {/* HERO */}
-                    {/* ================================================= */}
-
-                    <section className="relative min-h-[680px] overflow-hidden border-b border-white/[0.06]">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_40%,rgba(34,211,238,.10),transparent_30%)]" />
-
-                        <div className="mx-auto grid min-h-[680px] max-w-[1450px] items-center gap-12 px-5 py-20 lg:grid-cols-[1fr_.85fr] lg:px-8">
-
-                            {/* Text */}
-                            <div>
-                                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-2 text-xs font-semibold text-cyan-400">
-                                    <ShieldCheck className="size-4" />
-                                    اجرای تخصصی سیستم‌های نظارتی
-                                </div>
-
-                                <h1 className="max-w-3xl text-4xl font-black leading-[1.5] tracking-tight md:text-6xl">
-                                    نصب دوربین مداربسته
-                                    <span className="block text-cyan-400">
-                                        اصولی، دقیق و حرفه‌ای
-                                    </span>
-                                </h1>
-
-                                <p className="mt-7 max-w-2xl text-sm leading-9 text-slate-400 md:text-base">
-                                    از طراحی محل نصب و انتخاب تجهیزات تا
-                                    کابل‌کشی، نصب، تنظیم و تست نهایی سیستم
-                                    نظارتی؛ اجرای پروژه دوربین مداربسته را
-                                    متناسب با نیاز محیط شما انجام می‌دهیم.
-                                </p>
-
-                                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                                    <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 text-sm font-bold text-slate-950 shadow-xl shadow-cyan-500/10 transition hover:bg-cyan-300">
-                                        درخواست مشاوره و بازدید
-                                        <ArrowLeft className="size-4" />
-                                    </button>
-
-                                    <button className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-6 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.07] hover:text-white">
-                                        <Phone className="size-4" />
-                                        تماس با کارشناسان
-                                    </button>
-                                </div>
-
-                                <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">
-                                    <HeroStat
-                                        icon={<BadgeCheck />}
-                                        value="تخصصی"
-                                        label="اجرای پروژه"
-                                    />
-
-                                    <HeroStat
-                                        icon={<Wrench />}
-                                        value="کامل"
-                                        label="نصب تا راه‌اندازی"
-                                    />
-
-                                    <HeroStat
-                                        icon={<ShieldCheck />}
-                                        value="تست شده"
-                                        label="تحویل نهایی"
-                                    />
-                                </div>
+                {/* HERO */}
+                <section className="relative isolate overflow-hidden">
+                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_18%,rgba(151,205,235,0.8),transparent_31%),linear-gradient(135deg,#eef2f4_0%,#d9e3e9_52%,#bad0dd_100%)] dark:bg-[radial-gradient(circle_at_78%_18%,rgba(28,105,140,0.35),transparent_31%),linear-gradient(135deg,#0b1822_0%,#0d202d_52%,#102d3c_100%)]" />
+                    <div className="mx-auto grid max-w-[1440px] items-center gap-12 px-6 pb-14 pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pt-20">
+                        <div>
+                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#67a5c7]/35 bg-white/45 px-4 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-[#347ca7] backdrop-blur-sm dark:border-cyan-300/20 dark:bg-white/5 dark:text-cyan-300">
+                                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
+                                بازدید و مشاوره رایگان در تهران و کرج
                             </div>
+                            <h1 className="text-4xl font-semibold leading-[1.2] tracking-tight sm:text-5xl lg:text-[58px] lg:leading-[1.15]">
+                                نصب اصولی دوربین مداربسته
+                                <br />
+                                <span className="text-[#438caf] dark:text-cyan-400">با جنس اصلی و گارانتی معتبر</span>
+                            </h1>
+                            <p className="mt-6 max-w-lg leading-8 text-[#536a7b] dark:text-slate-300">
+                                برای منزل، مغازه، انبار و کارخانه؛ اجرا با هایک‌ویژن و داهوا اصلی، کابل‌کشی تمیز، انتقال تصویر روی موبایل + پشتیبانی واقعی بعد از نصب.
+                            </p>
+                            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold">
+                                <span className="flex items-center gap-1.5"><Check className="size-4 text-emerald-500" /> ۱۲+ سال تجربه</span>
+                                <span className="flex items-center gap-1.5"><Check className="size-4 text-emerald-500" /> ۱۴۰۰+ پروژه موفق</span>
+                                <span className="flex items-center gap-1.5"><Check className="size-4 text-emerald-500" /> مجری بانک‌ها و سازمان‌ها</span>
+                            </div>
+                            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                                <a href="#form-moshavere" className="flex items-center justify-center rounded-full bg-[#152434] px-8 py-4 text-sm font-bold text-white shadow-xl transition-all hover:-translate-y-1 dark:bg-cyan-400 dark:text-black">درخواست بازدید رایگان</a>
+                                <a href="tel:09902706257" className="flex items-center justify-center gap-2 rounded-full border border-[#152434]/20 bg-white/40 px-8 py-4 text-sm font-bold backdrop-blur-sm hover:bg-white/70 dark:border-white/15 dark:bg-white/5">
+                                    <Phone className="size-4" /><span dir="ltr">0990 270 6257</span>
+                                </a>
+                            </div>
+                            <p className="mt-3 text-xs text-[#6a7e8d]">کارشناس ما تا ۲ ساعت کاری تماس می‌گیرد. بدون نیاز به پرداخت.</p>
+                        </div>
 
-                            {/* Visual */}
-                            <div className="relative hidden lg:block">
-                                <div className="relative mx-auto aspect-square max-w-[560px]">
-
-                                    <div className="absolute inset-[12%] rounded-full border border-cyan-400/10" />
-                                    <div className="absolute inset-[22%] rounded-full border border-cyan-400/10" />
-                                    <div className="absolute inset-[32%] rounded-full border border-cyan-400/10" />
-
-                                    <div className="absolute inset-0 rounded-full bg-cyan-400/[0.025] blur-2xl" />
-
-                                    <div className="absolute left-1/2 top-1/2 flex size-56 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[40px] border border-cyan-400/20 bg-gradient-to-br from-[#172b40] to-[#091522] shadow-2xl shadow-cyan-950/60">
-                                        <Camera className="size-28 text-cyan-400" strokeWidth={1} />
+                        <div className="relative mx-auto w-full max-w-2xl">
+                            <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/30 p-2.5 shadow-2xl backdrop-blur-sm sm:rounded-[2.5rem] dark:border-white/10 dark:bg-white/5">
+                                <div className="relative aspect-[16/11] overflow-hidden rounded-[1.6rem]">
+                                    <img src="/assets/images/nasb-dorbin.jpg" alt="نصب دوربین مداربسته" className="size-full object-cover" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#152434]/50 via-transparent to-transparent" />
+                                    <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full bg-[#152434]/75 px-3 py-2 text-[11px] text-white backdrop-blur-md">
+                                        <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" /> در حال نصب در تهران
                                     </div>
-
-                                    <TechPoint
-                                        className="right-[7%] top-[22%]"
-                                        icon={<Eye />}
-                                        title="کیفیت تصویر"
-                                    />
-
-                                    <TechPoint
-                                        className="bottom-[18%] left-[5%]"
-                                        icon={<Network />}
-                                        title="شبکه و PoE"
-                                    />
-
-                                    <TechPoint
-                                        className="bottom-[4%] right-[28%]"
-                                        icon={<ShieldCheck />}
-                                        title="امنیت"
-                                    />
-
-                                    <TechPoint
-                                        className="left-[5%] top-[25%]"
-                                        icon={<Target />}
-                                        title="زاویه دید"
-                                    />
+                                    <div className="absolute bottom-5 right-5 flex items-center gap-2 rounded-2xl bg-white/85 px-4 py-2.5 text-sm font-bold backdrop-blur-md dark:bg-black/70">
+                                        <Video className="size-4 text-[#438caf]" /> کابل‌کشی تمیز، بدون تخریب
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 text-slate-600">
-                            <ArrowDown className="size-5 animate-bounce" />
-                        </div>
-                    </section>
-
-                    {/* ================================================= */}
-                    {/* INTRO */}
-                    {/* ================================================= */}
-
-                    <section className="mx-auto max-w-[1200px] px-5 py-24 lg:px-8">
-                        <div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
-
-                            <div>
-                                <p className="text-xs font-bold tracking-widest text-cyan-400">
-                                    WHY PROFESSIONAL INSTALLATION?
-                                </p>
-
-                                <h2 className="mt-4 text-3xl font-black leading-[1.7] md:text-4xl">
-                                    نصب دوربین فقط
-                                    <span className="text-cyan-400">
-                                        {" "}پیچاندن چند کابل{" "}
-                                    </span>
-                                    نیست
-                                </h2>
-                            </div>
-
-                            <div className="text-sm leading-9 text-slate-400">
-                                <p>
-                                    کیفیت یک سیستم نظارتی فقط به مدل دوربین
-                                    وابسته نیست. محل قرارگیری دوربین، ارتفاع
-                                    نصب، زاویه دید، نور محیط، مسیر کابل‌کشی،
-                                    شبکه، تنظیمات ضبط و حتی انتخاب هارد می‌تواند
-                                    روی عملکرد نهایی سیستم تأثیر بگذارد.
-                                </p>
-
-                                <p className="mt-5">
-                                    به همین دلیل نصب باید از مرحله طراحی شروع
-                                    شود و تا تست نهایی و تحویل سیستم ادامه
-                                    پیدا کند.
-                                </p>
+                            <div className="absolute -bottom-5 left-4 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/85 px-5 py-3.5 shadow-xl backdrop-blur-md dark:border-white/10 dark:bg-[#0b1b26]/90">
+                                <div className="flex text-amber-400">★★★★★</div>
+                                <div><div className="text-sm font-bold">۴.۸ از ۵</div><div className="text-[11px] text-slate-500">رضایت ۱۴۰۰+ مشتری نصب</div></div>
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-                    {/* ================================================= */}
-                    {/* PROCESS */}
-                    {/* ================================================= */}
-
-                    <section className="border-y border-white/[0.05] bg-[#07111d] py-24">
-                        <div className="mx-auto max-w-[1250px] px-5 lg:px-8">
-
-                            <SectionHeading
-                                eyebrow="INSTALLATION PROCESS"
-                                title="فرآیند نصب دوربین مداربسته"
-                                description="پروژه از بررسی اولیه شروع می‌شود و پس از تست کامل سیستم تحویل داده می‌شود."
-                            />
-
-                            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {installationSteps.map((step) => (
-                                    <ProcessCard
-                                        key={step.number}
-                                        {...step}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ================================================= */}
-                    {/* CAMERA TYPES */}
-                    {/* ================================================= */}
-
-                    <section className="mx-auto max-w-[1250px] px-5 py-24 lg:px-8">
-                        <SectionHeading
-                            eyebrow="CAMERA TYPES"
-                            title="نصب انواع دوربین مداربسته"
-                            description="نوع دوربین باید با محیط، هدف نظارتی و شرایط نصب هماهنگ باشد."
-                        />
-
-                        <div className="mt-14 grid gap-4 md:grid-cols-2">
-                            {cameraTypes.map((item) => (
-                                <CameraTypeCard
-                                    key={item.title}
-                                    {...item}
-                                />
+                    {/* TRUST BAR */}
+                    <div className="mx-auto max-w-[1440px] px-6 pb-10 lg:px-12">
+                        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                            {[["12+", "سال تجربه نصب و اجرا"], ["1400+", "پروژه موفق تحویل‌شده"], ["100%", "جنس اصلی با گارانتی"], ["4.8★", "امتیاز رضایت مشتریان"]].map((s) => (
+                                <div key={1} className="rounded-2xl border border-white/70 bg-white/70 py-4 text-center shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-white/5">
+                                    <div className="text-2xl font-extrabold text-[#438caf] dark:text-cyan-300">{1}</div>
+                                    <div className="mt-1 text-xs font-medium text-[#657a89] dark:text-slate-400">{0}</div>
+                                </div>
                             ))}
                         </div>
-                    </section>
+                        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 rounded-2xl bg-white/40 px-6 py-4 text-sm font-extrabold tracking-wide backdrop-blur-sm dark:bg-white/5">
+                            <span className="rounded-full bg-[#4a9aca]/15 px-3 py-1 text-xs text-[#438caf]">عامل رسمی فروش</span>
+                            <span>HIKVISION</span><span>DAHUA</span><span>TIANDY</span><span>IMOU</span>
+                        </div>
+                    </div>
+                </section>
 
-                    {/* ================================================= */}
-                    {/* PROJECT TYPES */}
-                    {/* ================================================= */}
-
-                    <section className="border-y border-white/[0.05] bg-[#07111d] py-24">
-                        <div className="mx-auto max-w-[1250px] px-5 lg:px-8">
-
-                            <div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:items-center">
-
-                                <div>
-                                    <p className="text-xs font-bold tracking-widest text-cyan-400">
-                                        FOR EVERY ENVIRONMENT
-                                    </p>
-
-                                    <h2 className="mt-4 text-3xl font-black leading-[1.7] md:text-4xl">
-                                        برای چه مکان‌هایی
-                                        <span className="text-cyan-400">
-                                            {" "}نصب انجام می‌شود؟
-                                        </span>
-                                    </h2>
-
-                                    <p className="mt-5 text-sm leading-8 text-slate-500">
-                                        طراحی و اجرای سیستم نظارتی باید با
-                                        کاربری و شرایط محیط هماهنگ باشد.
-                                    </p>
-                                </div>
-
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    {projectTypes.map((item, index) => (
-                                        <div
-                                            key={item}
-                                            className="group flex items-center gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 transition hover:border-cyan-400/20 hover:bg-cyan-400/[0.03]"
-                                        >
-                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
-                                                <Home className="size-5" />
-                                            </div>
-
-                                            <div>
-                                                <p className="text-sm font-bold">
-                                                    {item}
-                                                </p>
-
-                                                <p className="mt-1 text-[10px] text-slate-600">
-                                                    پروژه {String(index + 1).padStart(2, "0")}
-                                                </p>
-                                            </div>
-
-                                            <ArrowLeft className="mr-auto size-4 text-slate-700 transition group-hover:text-cyan-400" />
-                                        </div>
-                                    ))}
-                                </div>
+                {/* PAINS */}
+                <section className="mx-auto max-w-[1440px] px-6 py-16 lg:px-12">
+                    <div className="mx-auto max-w-2xl text-center">
+                        <span className="rounded-full bg-[#4fa9da]/12 px-4 py-1.5 text-xs font-bold text-[#438caf] dark:text-cyan-300">این مشکل برای شما هم آشناست؟</span>
+                        <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">بدون دوربین استاندارد، همیشه یک جای کار می‌لنگد</h2>
+                    </div>
+                    <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {pains.map((p) => (
+                            <div key={p.title} className="rounded-3xl border border-[#152434]/10 bg-white/70 p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-white/5">
+                                <div className="grid size-12 place-items-center rounded-2xl bg-[#152434] text-2xl text-white dark:bg-cyan-400">{p.emoji}</div>
+                                <h3 className="mt-4 font-bold">{p.title}</h3>
+                                <p className="mt-2 text-sm leading-7 text-[#536a7b] dark:text-slate-300">{p.desc}</p>
                             </div>
-                        </div>
-                    </section>
+                        ))}
+                    </div>
+                    <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-3xl bg-[#152434] px-7 py-6 text-white lg:flex-row dark:bg-[#0a1a26]">
+                        <p className="text-center text-sm leading-7 lg:text-right">هر ۴ مورد با یک بازدید کارشناسی و اجرای درست حل می‌شود. <b className="text-cyan-300">بدون تخریب، بدون سیم‌کشی شلخته.</b></p>
+                        <a href="#form-moshavere" className="shrink-0 rounded-full bg-cyan-400 px-7 py-3.5 text-sm font-bold text-black">حل مشکل من ← درخواست بازدید</a>
+                    </div>
+                </section>
 
-                    {/* ================================================= */}
-                    {/* DESIGN PRINCIPLES */}
-                    {/* ================================================= */}
-
-                    <section className="mx-auto max-w-[1250px] px-5 py-24 lg:px-8">
-
-                        <SectionHeading
-                            eyebrow="INSTALLATION QUALITY"
-                            title="در اجرای پروژه به چه چیزهایی توجه می‌کنیم؟"
-                            description="هدف فقط نصب دوربین نیست؛ هدف ساخت یک سیستم نظارتی قابل استفاده و قابل اطمینان است."
-                        />
-
-                        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <QualityCard
-                                icon={<Target />}
-                                title="زاویه مناسب"
-                                text="دوربین در نقطه‌ای قرار می‌گیرد که بیشترین پوشش مفید را داشته باشد."
-                            />
-
-                            <QualityCard
-                                icon={<Signal />}
-                                title="کیفیت تصویر"
-                                text="رزولوشن، نور محیط، لنز و شرایط دید برای رسیدن به تصویر مناسب بررسی می‌شود."
-                            />
-
-                            <QualityCard
-                                icon={<Network />}
-                                title="زیرساخت شبکه"
-                                text="مسیر کابل، سوئیچ، PoE و ارتباط تجهیزات پیش از اجرا بررسی می‌شود."
-                            />
-
-                            <QualityCard
-                                icon={<HardDrive />}
-                                title="ضبط مطمئن"
-                                text="ظرفیت هارد و تنظیمات ضبط متناسب با تعداد دوربین و نیاز پروژه انتخاب می‌شود."
-                            />
-                        </div>
-                    </section>
-
-                    {/* ================================================= */}
-                    {/* POE / NETWORK */}
-                    {/* ================================================= */}
-
-                    <section className="border-y border-white/[0.05] bg-[#07111d] py-24">
-                        <div className="mx-auto max-w-[1250px] px-5 lg:px-8">
-
-                            <div className="overflow-hidden rounded-[30px] border border-white/[0.07] bg-gradient-to-br from-[#102033] to-[#09131f]">
-
-                                <div className="grid lg:grid-cols-2">
-
-                                    <div className="p-7 md:p-10 lg:p-14">
-                                        <div className="flex size-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400">
-                                            <PlugZap className="size-6" />
-                                        </div>
-
-                                        <h2 className="mt-6 text-3xl font-black leading-[1.6]">
-                                            کابل‌کشی، شبکه و
-                                            <span className="text-cyan-400">
-                                                {" "}PoE
-                                            </span>
-                                        </h2>
-
-                                        <p className="mt-5 text-sm leading-9 text-slate-400">
-                                            در سیستم‌های تحت شبکه، کیفیت اجرای
-                                            زیرساخت اهمیت زیادی دارد. انتخاب
-                                            مسیر مناسب، کابل استاندارد، سوئیچ
-                                            مناسب و تأمین برق دوربین‌ها باید
-                                            متناسب با پروژه انجام شود.
-                                        </p>
-
-                                        <div className="mt-7 space-y-3">
-                                            <Feature text="بررسی مسیر کابل‌کشی" />
-                                            <Feature text="انتخاب تجهیزات شبکه مناسب" />
-                                            <Feature text="بررسی توان PoE" />
-                                            <Feature text="تست ارتباط دوربین‌ها" />
-                                        </div>
+                {/* SERVICES */}
+                <section className="bg-white/50 py-16 backdrop-blur-sm dark:bg-white/[0.02]">
+                    <div className="mx-auto max-w-[1440px] px-6 lg:px-12">
+                        <div className="text-center"><h2 className="text-3xl font-semibold sm:text-4xl">برای ملک شما، راه‌حل اختصاصی داریم</h2></div>
+                        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {services.map((s) => (
+                                <div key={s.title} className="group overflow-hidden rounded-3xl border border-[#152434]/10 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#0b1b26]">
+                                    <div className="relative h-44 overflow-hidden">
+                                        <img src={s.img} alt={s.title} className="size-full object-cover transition duration-500 group-hover:scale-105" />
+                                        <span className="absolute right-3 top-3 rounded-full bg-[#152434]/85 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md">{s.tag}</span>
                                     </div>
-
-                                    <div className="relative min-h-[360px] overflow-hidden border-t border-white/[0.06] lg:border-r lg:border-t-0">
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,.12),transparent_45%)]" />
-
-                                        <div className="absolute left-1/2 top-1/2 flex size-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-3xl border border-cyan-400/20 bg-[#0a1725] shadow-2xl shadow-cyan-950">
-                                            <Network className="size-16 text-cyan-400" />
-                                        </div>
-
-                                        <div className="absolute right-[15%] top-[28%] flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-cyan-400">
-                                            <Camera className="size-5" />
-                                        </div>
-
-                                        <div className="absolute right-[15%] bottom-[28%] flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-cyan-400">
-                                            <Camera className="size-5" />
-                                        </div>
-
-                                        <div className="absolute left-[15%] top-1/2 h-px w-[28%] bg-gradient-to-l from-cyan-400/60 to-transparent" />
-
-                                        <div className="absolute right-[15%] top-[31%] h-px w-[22%] bg-gradient-to-r from-cyan-400/60 to-transparent" />
-
-                                        <div className="absolute right-[15%] bottom-[31%] h-px w-[22%] bg-gradient-to-r from-cyan-400/60 to-transparent" />
-                                    </div>
+                                    <div className="p-5"><h3 className="font-bold">{s.title}</h3><p className="mt-2 text-[13px] leading-7 text-[#536a7b] dark:text-slate-300">{s.desc}</p>
+                                        <a href="#form-moshavere" className="mt-3 flex items-center gap-1 text-sm font-bold text-[#438caf]">استعلام <ArrowLeft className="size-4" /></a></div>
                                 </div>
-                            </div>
+                            ))}
                         </div>
-                    </section>
+                    </div>
+                </section>
 
-                    {/* ================================================= */}
-                    {/* INSTALLATION CHECKLIST */}
-                    {/* ================================================= */}
-
-                    <section className="mx-auto max-w-[1000px] px-5 py-24 lg:px-8">
-
-                        <SectionHeading
-                            eyebrow="FINAL CHECK"
-                            title="قبل از تحویل چه چیزهایی بررسی می‌شود؟"
-                            description="پس از نصب، سیستم به صورت کامل بررسی و تست می‌شود."
-                            center
-                        />
-
-                        <div className="mt-12 grid gap-3 sm:grid-cols-2">
-                            <CheckItem text="تصویر تمام دوربین‌ها" />
-                            <CheckItem text="زاویه و پوشش تصویر" />
-                            <CheckItem text="کیفیت تصویر روز" />
-                            <CheckItem text="عملکرد دید در شب" />
-                            <CheckItem text="ضبط تصاویر" />
-                            <CheckItem text="ظرفیت و سلامت هارد" />
-                            <CheckItem text="ارتباط شبکه" />
-                            <CheckItem text="دسترسی از موبایل" />
-                            <CheckItem text="تنظیمات دستگاه ضبط" />
-                            <CheckItem text="بررسی کابل و اتصالات" />
-                        </div>
-                    </section>
-
-                    {/* ================================================= */}
-                    {/* SERVICE FEATURES */}
-                    {/* ================================================= */}
-
-                    <section className="border-y border-white/[0.05] bg-[#07111d] py-24">
-                        <div className="mx-auto max-w-[1250px] px-5 lg:px-8">
-
-                            <SectionHeading
-                                eyebrow="WHY RAYAN NOVIN"
-                                title="چرا نصب را به رایان نوین بسپاریم؟"
-                                description="اجرای سیستم نظارتی زمانی ارزشمند است که نتیجه نهایی با نیاز واقعی پروژه هماهنگ باشد."
-                            />
-
-                            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
-                                <ReasonCard
-                                    icon={<Layers3 />}
-                                    title="طراحی متناسب با پروژه"
-                                    text="تعداد و محل دوربین‌ها بر اساس شرایط واقعی محیط انتخاب می‌شود."
-                                />
-
-                                <ReasonCard
-                                    icon={<Settings2 />}
-                                    title="تنظیمات کامل"
-                                    text="تنظیمات دوربین، دستگاه ضبط، شبکه و دسترسی نرم‌افزاری انجام می‌شود."
-                                />
-
-                                <ReasonCard
-                                    icon={<Zap />}
-                                    title="اجرای زیرساخت"
-                                    text="کابل‌کشی و تجهیزات شبکه متناسب با سیستم اجرا می‌شوند."
-                                />
-
-                                <ReasonCard
-                                    icon={<Eye />}
-                                    title="تمرکز روی تصویر"
-                                    text="زاویه، نور و فاصله سوژه برای دستیابی به تصویر کاربردی بررسی می‌شوند."
-                                />
-
-                                <ReasonCard
-                                    icon={<FileCheck2 />}
-                                    title="تست پیش از تحویل"
-                                    text="سیستم قبل از تحویل از نظر عملکرد و ارتباط تجهیزات بررسی می‌شود."
-                                />
-
-                                <ReasonCard
-                                    icon={<Clock3 />}
-                                    title="پشتیبانی"
-                                    text="در صورت نیاز، خدمات پشتیبانی و بررسی سیستم پس از اجرا نیز قابل ارائه است."
-                                />
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ================================================= */}
-                    {/* FAQ */}
-                    {/* ================================================= */}
-
-                    <section className="mx-auto max-w-[1000px] px-5 py-24 lg:px-8">
-
-                        <SectionHeading
-                            eyebrow="FAQ"
-                            title="سوالات متداول نصب دوربین مداربسته"
-                            description="پاسخ چند سوال رایج درباره نصب و راه‌اندازی سیستم‌های نظارتی."
-                            center
-                        />
-
-                        <div className="mt-12 space-y-3">
-                            {faqs.map((faq, index) => {
-                                const open = openFaq === index;
-
-                                return (
-                                    <div
-                                        key={faq.question}
-                                        className={`overflow-hidden rounded-2xl border transition ${
-                                            open
-                                                ? "border-cyan-400/20 bg-cyan-400/[0.03]"
-                                                : "border-white/[0.07] bg-white/[0.02]"
-                                        }`}
-                                    >
-                                        <button
-                                            onClick={() =>
-                                                setOpenFaq(
-                                                    open ? null : index
-                                                )
-                                            }
-                                            className="flex w-full items-center gap-4 p-5 text-right"
-                                        >
-                                            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
-                                                <CircleHelp className="size-4" />
-                                            </div>
-
-                                            <span className="flex-1 text-sm font-bold">
-                                                {faq.question}
-                                            </span>
-
-                                            <ChevronDown
-                                                className={`size-5 shrink-0 text-slate-500 transition-transform ${
-                                                    open ? "rotate-180" : ""
-                                                }`}
-                                            />
-                                        </button>
-
-                                        {open && (
-                                            <div className="border-t border-white/[0.06] px-5 pb-5 pr-[4.5rem]">
-                                                <p className="text-xs leading-8 text-slate-500">
-                                                    {faq.answer}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </section>
-
-                    {/* ================================================= */}
-                    {/* CTA */}
-                    {/* ================================================= */}
-
-                    <section className="mx-auto max-w-[1250px] px-5 pb-24 lg:px-8">
-
-                        <div className="relative overflow-hidden rounded-[32px] border border-cyan-400/20 bg-gradient-to-br from-[#102b3d] via-[#0b1c2c] to-[#08121e] p-8 md:p-12 lg:p-16">
-
-                            <div className="absolute -left-20 -top-20 size-72 rounded-full bg-cyan-400/10 blur-[100px]" />
-                            <div className="absolute -bottom-32 right-1/3 size-72 rounded-full bg-blue-500/10 blur-[110px]" />
-
-                            <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-
-                                <div>
-                                    <div className="mb-4 flex items-center gap-2 text-xs font-bold text-cyan-400">
-                                        <Sparkles className="size-4" />
-                                        اجرای پروژه جدید
-                                    </div>
-
-                                    <h2 className="max-w-2xl text-3xl font-black leading-[1.7] md:text-4xl">
-                                        برای پروژه‌تان به یک سیستم نظارتی
-                                        مطمئن نیاز دارید؟
-                                    </h2>
-
-                                    <p className="mt-4 max-w-2xl text-sm leading-8 text-slate-400">
-                                        مشخصات پروژه را با کارشناسان رایان نوین
-                                        در میان بگذارید تا درباره تعداد دوربین،
-                                        تجهیزات و نحوه اجرای سیستم راهنمایی
-                                        دریافت کنید.
-                                    </p>
+                {/* WHY US */}
+                <section className="mx-auto grid max-w-[1440px] items-center gap-8 px-6 py-16 lg:grid-cols-2 lg:px-12">
+                    <div>
+                        <span className="text-xs font-bold tracking-[0.2em] text-[#438caf] dark:text-cyan-300">چرا رایان نوین؟</span>
+                        <h2 className="mt-3 text-3xl font-semibold leading-snug sm:text-4xl">نصاب معمولی نیستیم،<br />مجری پروژه‌ایم</h2>
+                        <div className="mt-6 space-y-3">
+                            {["۱۰۰٪ جنس اصلی با گارانتی معتبر و قابل استعلام", "مجری بانک‌ها و سازمان‌ها با فاکتور رسمی", "کابل‌کشی تمیز با داکت، بدون سیم آویزون", "انتقال تصویر روی موبایل + آموزش حضوری"].map((t) => (
+                                <div key={t} className="flex items-center gap-3 rounded-2xl border border-[#152434]/10 bg-white/70 p-4 text-sm font-medium backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
+                                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-600"><Check className="size-4" /></span>{t}
                                 </div>
-
-                                <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
-                                    <button className="flex h-12 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-7 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">
-                                        درخواست مشاوره
-                                        <ArrowLeft className="size-4" />
-                                    </button>
-
-                                    <button className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-7 text-sm font-semibold text-white transition hover:bg-white/[0.08]">
-                                        <Phone className="size-4" />
-                                        تماس با ما
-                                    </button>
-                                </div>
-
-                            </div>
+                            ))}
                         </div>
-                    </section>
+                    </div>
+                    <div className="rounded-[2rem] bg-[#152434] p-7 text-white dark:bg-[#0a1a26]">
+                        <h3 className="font-bold">فرق ما با نصاب متفرقه چیست؟</h3>
+                        <div className="mt-5 space-y-2.5 text-sm">
+                            {[["دوربین اصلی + گارانتی", "✔ دارد", "✘ نامشخص"], ["فاکتور رسمی و قرارداد", "✔ دارد", "✘ ندارد"], ["پشتیبانی بعد از نصب", "✔ دارد", "✘ ندارد"], ["محاسبه نقطه کور و هارد", "✔ تخصصی", "✘ حدسی"]].map((r) => (
+                                <div key={1} className="grid grid-cols-[1fr_90px_90px] items-center rounded-xl bg-white/5 px-3 py-3">
+                                    <span>ی</span><span className="text-center font-bold text-cyan-300">{1}</span><span className="text-center text-slate-400">{1}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
 
-                </div>
+                {/* PROCESS */}
+                <section className="mx-auto max-w-[1440px] px-6 pb-16 lg:px-12">
+                    <h2 className="text-center text-3xl font-semibold">از تماس اول تا دیدن تصویر، فقط ۴ قدم</h2>
+                    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {[
+                            { n: "۱", t: "ثبت درخواست", d: "فرم را پر کن یا زنگ بزن. کارشناس مرتبط تماس می‌گیرد.", b: "۲ دقیقه" },
+                            { n: "۲", t: "بازدید و برآورد", d: "نقطه کورها، تعداد دوربین و متراژ کابل دقیق مشخص می‌شود.", b: "رایگان" },
+                            { n: "۳", t: "پیش‌فاکتور رسمی", d: "مدل دوربین، هارد و اجرت جدا نوشته می‌شود. بدون هزینه پنهان.", b: "کتبی و شفاف" },
+                            { n: "۴", t: "نصب + آموزش", d: "نصب تمیز، انتقال تصویر و آموزش + تحویل گارانتی.", b: "همان روز" },
+                        ].map((s) => (
+                            <div key={s.n} className="rounded-3xl border border-[#152434]/10 bg-white/70 p-6 text-center backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
+                                <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-[#152434] text-xl font-extrabold text-white dark:bg-cyan-400 dark:text-black">{s.n}</div>
+                                <span className="mt-3 inline-block rounded-full bg-[#4fa9da]/12 px-3 py-1 text-[11px] font-bold text-[#438caf]">{s.b}</span>
+                                <h3 className="mt-2 font-bold">{s.t}</h3><p className="mt-2 text-[13px] leading-6 text-[#536a7b] dark:text-slate-300">{s.d}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* PORTFOLIO */}
+                <section className="bg-white/50 py-16 dark:bg-white/[0.02]">
+                    <div className="mx-auto max-w-[1440px] px-6 lg:px-12">
+                        <h2 className="text-3xl font-semibold">حرف نمی‌زنیم، پروژه نشان می‌دهیم</h2>
+                        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {projects.map((p) => (
+                                <div key={p.title} className="overflow-hidden rounded-3xl border border-[#152434]/10 bg-white transition hover:shadow-xl dark:border-white/10 dark:bg-[#0b1b26]">
+                                    <img src={p.img} alt={p.title} className="h-44 w-full object-cover" />
+                                    <div className="p-5"><h3 className="text-sm font-bold">{p.title}</h3><div className="mt-1 text-xs text-[#657a89]">📍 {p.loc}</div><div className="mt-2 text-[13px] font-bold text-[#438caf]">{p.spec}</div></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* PRICING */}
+                <section className="mx-auto max-w-[1440px] px-6 py-16 lg:px-12">
+                    <div className="text-center"><h2 className="text-3xl font-semibold sm:text-4xl">حدود قیمت نصب چقدر می‌شود؟</h2><p className="mt-3 text-sm text-[#536a7b]">قیمت نهایی بعد از بازدید مشخص می‌شود، ولی این ۳ پکیج دست‌تان می‌آید.</p></div>
+                    <div className="mt-8 grid gap-4 lg:grid-cols-3">
+                        <div className="rounded-[1.8rem] border border-[#152434]/10 bg-white/70 p-7 backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
+                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">اقتصادی | منزل</span>
+                            <h3 className="mt-3 text-lg font-bold">پکیج ۲ دوربینه</h3>
+                            <ul className="mt-4 space-y-2 text-[13px] text-[#536a7b] dark:text-slate-300">
+                                <li>✓ ۲ دوربین ۲ مگاپیکسل داهوا / آیمو</li><li>✓ دستگاه ۴ کانال + هارد ۱ ترا</li><li>✓ انتقال تصویر روی موبایل</li><li>✓ نصب + داکت‌کشی تمیز</li>
+                            </ul>
+                            <a href="#form-moshavere" className="mt-6 block rounded-full border border-[#438caf]/30 py-3.5 text-center text-sm font-bold text-[#438caf]">استعلام این پکیج</a>
+                        </div>
+                        <div className="relative overflow-hidden rounded-[1.8rem] bg-[#152434] p-7 text-white shadow-2xl dark:bg-[#0a1a26]">
+                            <span className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-bold text-black">★ پرفروش | مغازه</span>
+                            <h3 className="mt-3 text-lg font-bold">پکیج ۴ دوربینه صدادار</h3>
+                            <ul className="mt-4 space-y-2 text-[13px] text-slate-200">
+                                <li>✓ ۴ دوربین داهوا / هایک‌ویژن صدادار</li><li>✓ دستگاه + هارد ۲ ترا (بازپخش یک‌ماهه)</li><li>✓ دید در شب قوی + آموزش حضوری</li><li>✓ گارانتی معتبر + فاکتور رسمی</li>
+                            </ul>
+                            <a href="#form-moshavere" className="mt-6 block rounded-full bg-cyan-400 py-4 text-center text-sm font-bold text-black">می‌خوام همین رو ←</a>
+                        </div>
+                        <div className="rounded-[1.8rem] border border-[#152434]/10 bg-white/70 p-7 backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
+                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">حرفه‌ای | کارخانه</span>
+                            <h3 className="mt-3 text-lg font-bold">پکیج ۸ دوربینه به بالا</h3>
+                            <ul className="mt-4 space-y-2 text-[13px] text-[#536a7b] dark:text-slate-300">
+                                <li>✓ ۸ تا ۳۲+ دوربین تحت شبکه IP</li><li>✓ رک، سوئیچ POE و کابل‌کشی صنعتی</li><li>✓ طراحی نقشه + نقطه کور صفر</li><li>✓ قرارداد + پشتیبانی سالانه</li>
+                            </ul>
+                            <a href="#form-moshavere" className="mt-6 block rounded-full border border-[#438caf]/30 py-3.5 text-center text-sm font-bold text-[#438caf]">درخواست بازدید و برآورد</a>
+                        </div>
+                    </div>
+                </section>
+
+                {/* TESTIMONIALS + FAQ + FORM */}
+                <section className="mx-auto max-w-[1440px] px-6 pb-8 lg:px-12">
+                    <div className="grid gap-4 lg:grid-cols-3">
+                        {[
+                            { n: "محمد کریمی", r: "سوپرمارکت · نارمک", t: "کابل‌کشی‌شان انقدر تمیز بود که به چشم نمی‌آید. انتقال تصویر را همان‌جا روی گوشیم راه انداختند." },
+                            { n: "رضا احمدی", r: "انبار قطعات · شمس‌آباد", t: "آمدند بازدید، نقشه کشیدند، نقطه‌کورها را درآوردند. سه روزه با فاکتور رسمی تحویل دادند." },
+                            { n: "سارا موسوی", r: "ویلا · لواسان", t: "پشتیبانی‌شان واقعی است. یک‌بار اینترنت قطع شد تلفنی راهنمایی‌ام کردند وصل شد." },
+                        ].map((c) => (
+                            <div key={c.n} className="rounded-3xl border border-[#152434]/10 bg-white/70 p-6 backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
+                                <div className="text-amber-400">★★★★★</div>
+                                <p className="mt-3 text-sm leading-7 text-[#536a7b] dark:text-slate-300">«{c.t}»</p>
+                                <div className="mt-4 border-t border-black/5 pt-4 text-sm font-bold dark:border-white/10">{c.n}<span className="block text-xs font-normal text-[#438caf]">{c.r}</span></div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="mx-auto max-w-3xl px-6 py-10">
+                    <h2 className="text-center text-3xl font-semibold">قبل از تماس، جواب سوالت اینجاست</h2>
+                    <div className="mt-8 space-y-3">
+                        {faqs.map((f, i) => (
+                            <div key={i} className={`overflow-hidden rounded-2xl border backdrop-blur-sm ${open === i ? "border-[#4a9aca]/40 bg-white shadow-lg dark:bg-white/10" : "border-[#152434]/10 bg-white/60 dark:border-white/10 dark:bg-white/5"}`}>
+                                <button onClick={() => setOpen(open === i ? -1 : i)} className="flex w-full items-center justify-between gap-3 p-5 text-right text-[15px] font-bold">
+                                    {f.q}<ChevronDown className={`size-5 shrink-0 transition ${open === i ? "rotate-180" : ""}`} />
+                                </button>
+                                {open === i && <p className="px-5 pb-5 text-sm leading-8 text-[#536a7b] dark:text-slate-300">{f.a}</p>}
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* LEAD FORM */}
+                <section id="form-moshavere" className="mx-auto max-w-[1200px] scroll-mt-20 px-6 pb-20 lg:px-12">
+                    <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
+                        <div className="rounded-[2rem] bg-[#152434] p-8 text-white dark:bg-[#0a1a26]">
+                            <span className="rounded-full bg-cyan-400/15 px-4 py-1.5 text-xs font-bold text-cyan-300">بازدید کاملا رایگان</span>
+                            <h2 className="mt-4 text-3xl font-semibold leading-snug">تا ۲ ساعت کاری زنگ می‌زنیم</h2>
+                            <ul className="mt-6 space-y-3 text-sm">
+                                {["بدون پیش‌پرداخت و بدون تعهد", "برآورد دقیق تعداد دوربین و هزینه", "جواب از کارشناس نصب، نه فروشنده"].map((t) => (
+                                    <li key={t} className="flex items-center gap-2"><span className="grid size-6 place-items-center rounded-full bg-cyan-400/20 text-cyan-300"><Check className="size-4" /></span>{t}</li>
+                                ))}
+                            </ul>
+                            <div className="mt-6 flex items-center gap-3 rounded-2xl bg-white/5 p-4">
+                                <span className="grid size-11 place-items-center rounded-full bg-cyan-400 text-black"><Phone className="size-5" /></span>
+                                <div><div className="text-xs text-slate-400">ترجیح می‌دهی خودت زنگ بزنی؟</div>
+                                    <div dir="ltr" className="text-right text-lg font-extrabold text-cyan-300">0912 949 4234</div></div>
+                            </div>
+                            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400"><Clock className="size-4" /> شنبه تا پنجشنبه ۹ تا ۱۸</div>
+                        </div>
+                        <div className="rounded-[2rem] border border-white/80 bg-white/80 p-8 shadow-2xl backdrop-blur-md sm:p-10 dark:border-white/10 dark:bg-white/5">
+                            <h3 className="text-xl font-bold">فرم درخواست بازدید رایگان</h3>
+                            <p className="mt-1 text-sm text-[#657a89]">فقط ۳۰ ثانیه طول می‌کشد. بقیه‌ش با ما.</p>
+                            <form className="mt-6 grid gap-4 sm:grid-cols-2">
+                                <label className="block"><span className="mb-1.5 block text-[13px] font-bold">نام و نام خانوادگی *</span><input required placeholder="مثلا علی رضایی" className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-sm outline-none focus:border-[#4a9aca] dark:border-white/10 dark:bg-black/20" /></label>
+                                <label className="block"><span className="mb-1.5 block text-[13px] font-bold">شماره موبایل *</span><input required placeholder="0912..." className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-sm outline-none focus:border-[#4a9aca] dark:border-white/10 dark:bg-black/20" /></label>
+                                <label className="block"><span className="mb-1.5 block text-[13px] font-bold">نوع ملک *</span>
+                                    <select className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-sm dark:border-white/10 dark:bg-black/20"><option>منزل / ویلا</option><option>مغازه / فروشگاه</option><option>کارخانه / انبار</option><option>اداره / سازمان</option></select></label>
+                                <label className="block"><span className="mb-1.5 block text-[13px] font-bold">شهر *</span>
+                                    <select className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-sm dark:border-white/10 dark:bg-black/20"><option>تهران</option><option>کرج</option><option>شهرهای اطراف</option></select></label>
+                                <label className="block sm:col-span-2"><span className="mb-1.5 block text-[13px] font-bold">توضیح کوتاه</span><textarea rows={3} placeholder="مثلا: مغازه ۸۰ متری، ۲ ورودی، پوشش صندوق..." className="w-full resize-none rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-sm leading-7 dark:border-white/10 dark:bg-black/20" /></label>
+                                <button className="rounded-full bg-[#152434] py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 sm:col-span-2 dark:bg-cyan-400 dark:text-black">ثبت درخواست بازدید رایگان</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </HomeLayout>
-    );
-}
-
-/* ========================================================= */
-/* COMPONENTS */
-/* ========================================================= */
-
-function SectionHeading({
-                            eyebrow,
-                            title,
-                            description,
-                            center = false,
-                        }: {
-    eyebrow: string;
-    title: string;
-    description: string;
-    center?: boolean;
-}) {
-    return (
-        <div className={center ? "mx-auto max-w-2xl text-center" : "max-w-3xl"}>
-            <p className="text-xs font-bold tracking-widest text-cyan-400">
-                {eyebrow}
-            </p>
-
-            <h2 className="mt-4 text-3xl font-black leading-[1.7] md:text-4xl">
-                {title}
-            </h2>
-
-            <p className="mt-4 text-sm leading-8 text-slate-500">
-                {description}
-            </p>
-        </div>
-    );
-}
-
-function HeroStat({
-                      icon,
-                      value,
-                      label,
-                  }: {
-    icon: React.ReactNode;
-    value: string;
-    label: string;
-}) {
-    return (
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
-            <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400 [&>svg]:size-4">
-                {icon}
-            </div>
-
-            <p className="text-sm font-black text-white">
-                {value}
-            </p>
-
-            <p className="mt-1 text-[10px] text-slate-600">
-                {label}
-            </p>
-        </div>
-    );
-}
-
-function TechPoint({
-                       icon,
-                       title,
-                       className,
-                   }: {
-    icon: React.ReactNode;
-    title: string;
-    className: string;
-}) {
-    return (
-        <div
-            className={`absolute flex items-center gap-2 rounded-xl border border-white/10 bg-[#091522]/90 px-3 py-2 text-[10px] font-semibold text-slate-300 shadow-xl backdrop-blur ${className}`}
-        >
-            <span className="text-cyan-400 [&>svg]:size-4">
-                {icon}
-            </span>
-
-            {title}
-        </div>
-    );
-}
-
-function ProcessCard({
-                         number,
-                         title,
-                         description,
-                         icon,
-                     }: {
-    number: string;
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-}) {
-    return (
-        <div className="group relative rounded-[24px] border border-white/[0.07] bg-white/[0.02] p-6 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/20 hover:bg-cyan-400/[0.025]">
-
-            <div className="flex items-center justify-between">
-                <div className="flex size-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400 [&>svg]:size-5">
-                    {icon}
-                </div>
-
-                <span className="text-4xl font-black text-white/[0.05]">
-                    {number}
-                </span>
-            </div>
-
-            <h3 className="mt-6 text-base font-black">
-                {title}
-            </h3>
-
-            <p className="mt-3 text-xs leading-8 text-slate-500">
-                {description}
-            </p>
-        </div>
-    );
-}
-
-function CameraTypeCard({
-                            title,
-                            description,
-                            icon,
-                            tags,
-                        }: {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    tags: string[];
-}) {
-    return (
-        <div className="group rounded-[24px] border border-white/[0.07] bg-[#0b1624] p-6 transition duration-300 hover:border-cyan-400/20 hover:shadow-xl hover:shadow-cyan-950/20">
-
-            <div className="flex items-start justify-between">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400 [&>svg]:size-6">
-                    {icon}
-                </div>
-
-                <ArrowLeft className="size-5 text-slate-700 transition group-hover:text-cyan-400" />
-            </div>
-
-            <h3 className="mt-6 text-lg font-black">
-                {title}
-            </h3>
-
-            <p className="mt-3 text-sm leading-8 text-slate-500">
-                {description}
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                    <span
-                        key={tag}
-                        className="rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-1.5 text-[10px] text-slate-500"
-                    >
-                        {tag}
-                    </span>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function QualityCard({
-                         icon,
-                         title,
-                         text,
-                     }: {
-    icon: React.ReactNode;
-    title: string;
-    text: string;
-}) {
-    return (
-        <div className="rounded-[22px] border border-white/[0.07] bg-[#0b1624] p-5">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400 [&>svg]:size-5">
-                {icon}
-            </div>
-
-            <h3 className="mt-5 text-sm font-black">
-                {title}
-            </h3>
-
-            <p className="mt-2 text-xs leading-7 text-slate-500">
-                {text}
-            </p>
-        </div>
-    );
-}
-
-function Feature({ text }: { text: string }) {
-    return (
-        <div className="flex items-center gap-3 text-xs text-slate-400">
-            <span className="flex size-5 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-400">
-                <Check className="size-3" />
-            </span>
-
-            {text}
-        </div>
-    );
-}
-
-function CheckItem({ text }: { text: string }) {
-    return (
-        <div className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400">
-                <CheckCircle2 className="size-4" />
-            </div>
-
-            <span className="text-sm font-medium text-slate-300">
-                {text}
-            </span>
-        </div>
-    );
-}
-
-function ReasonCard({
-                        icon,
-                        title,
-                        text,
-                    }: {
-    icon: React.ReactNode;
-    title: string;
-    text: string;
-}) {
-    return (
-        <div className="rounded-[22px] border border-white/[0.07] bg-white/[0.02] p-6 transition hover:border-cyan-400/15">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400 [&>svg]:size-5">
-                {icon}
-            </div>
-
-            <h3 className="mt-5 text-sm font-black">
-                {title}
-            </h3>
-
-            <p className="mt-2 text-xs leading-8 text-slate-500">
-                {text}
-            </p>
-        </div>
     );
 }

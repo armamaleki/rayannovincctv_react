@@ -1,3 +1,4 @@
+
 import HomeLayout from "@/layouts/home/home-layout";
 import {
     Camera,
@@ -82,6 +83,68 @@ const lenses = [
     { value: "12", label: "12mm", angle: "حدود ۲۷°" },
 ];
 
+/*
+|--------------------------------------------------------------------------
+| Sample Videos
+|--------------------------------------------------------------------------
+| بعداً فقط همین آرایه را تغییر بده.
+|
+| video  => مسیر فایل ویدئو
+| poster => تصویر Preview ویدئو
+|--------------------------------------------------------------------------
+*/
+
+const sampleVideos = [
+    {
+        id: 1,
+        title: "نمونه کیفیت تصویر 2MP",
+        description:
+            "نمونه واقعی کیفیت تصویر دوربین 2 مگاپیکسل در شرایط نوری مناسب.",
+        video: "/videos/cctv-2mp.mp4",
+        poster: "/images/cctv-2mp.jpg",
+        resolution: "2MP",
+        distance: "10 متر",
+        lens: "3.6mm",
+        condition: "روز",
+    },
+    {
+        id: 2,
+        title: "نمونه کیفیت تصویر 5MP",
+        description:
+            "بررسی جزئیات تصویر دوربین 5 مگاپیکسل در فاصله متوسط.",
+        video: "/videos/cctv-5mp.mp4",
+        poster: "/images/cctv-5mp.jpg",
+        resolution: "5MP",
+        distance: "15 متر",
+        lens: "3.6mm",
+        condition: "روز",
+    },
+    {
+        id: 3,
+        title: "نمونه کیفیت تصویر 8MP",
+        description:
+            "نمونه واقعی تصویر دوربین 8 مگاپیکسل با جزئیات بالا.",
+        video: "/videos/cctv-8mp.mp4",
+        poster: "/images/cctv-8mp.jpg",
+        resolution: "8MP",
+        distance: "20 متر",
+        lens: "6mm",
+        condition: "روز",
+    },
+    {
+        id: 4,
+        title: "نمونه تصویر در شب",
+        description:
+            "بررسی کیفیت تصویر دوربین مداربسته در شرایط کم‌نور و شب.",
+        video: "/videos/cctv-night.mp4",
+        poster: "/images/cctv-night.jpg",
+        resolution: "5MP",
+        distance: "15 متر",
+        lens: "3.6mm",
+        condition: "شب",
+    },
+];
+
 export default function CctvCameraImageQuality() {
     const [resolution, setResolution] = useState("8mp");
     const [distance, setDistance] = useState(15);
@@ -89,10 +152,12 @@ export default function CctvCameraImageQuality() {
     const [nightVision, setNightVision] = useState(true);
 
     const selectedResolution = resolutions.find(
-        (item) => item.value === resolution
+        (item) => item.value === resolution,
     )!;
 
-    const selectedLens = lenses.find((item) => item.value === lens)!;
+    const selectedLens = lenses.find(
+        (item) => item.value === lens,
+    )!;
 
     const quality = useMemo(() => {
         let score = selectedResolution.level;
@@ -228,14 +293,14 @@ export default function CctvCameraImageQuality() {
                                                     setResolution(item.value)
                                                 }
                                                 className={`
-                                                    relative rounded-2xl border p-4 text-center
-                                                    transition-all duration-200
-                                                    ${
-                                                    active
-                                                        ? "border-cyan-400/40 bg-cyan-400/10 text-white shadow-lg shadow-cyan-500/5"
-                                                        : "border-white/[0.07] bg-white/[0.02] text-slate-500 hover:border-white/15 hover:text-slate-300"
-                                                }
-                                                `}
+relative rounded-2xl border p-4 text-center
+transition-all duration-200
+${
+    active
+        ? "border-cyan-400/40 bg-cyan-400/10 text-white shadow-lg shadow-cyan-500/5"
+        : "border-white/[0.07] bg-white/[0.02] text-slate-500 hover:border-white/15 hover:text-slate-300"
+}
+`}
                                             >
                                                 {active && (
                                                     <span className="absolute left-2 top-2 flex size-4 items-center justify-center rounded-full bg-cyan-400 text-slate-950">
@@ -314,15 +379,15 @@ export default function CctvCameraImageQuality() {
                                                     setLens(item.value)
                                                 }
                                                 className={`
-                                                    rounded-xl border px-3 py-3
-                                                    text-sm font-bold
-                                                    transition-all
-                                                    ${
-                                                    active
-                                                        ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-400"
-                                                        : "border-white/[0.07] bg-white/[0.02] text-slate-500 hover:text-white"
-                                                }
-                                                `}
+rounded-xl border px-3 py-3
+text-sm font-bold
+transition-all
+${
+    active
+        ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-400"
+        : "border-white/[0.07] bg-white/[0.02] text-slate-500 hover:text-white"
+}
+`}
                                             >
                                                 {item.label}
                                             </button>
@@ -358,26 +423,26 @@ export default function CctvCameraImageQuality() {
                                         setNightVision(!nightVision)
                                     }
                                     className={`
-                                        relative h-7 w-12 rounded-full
-                                        transition-colors
-                                        ${
-                                        nightVision
-                                            ? "bg-cyan-400"
-                                            : "bg-slate-700"
-                                    }
-                                    `}
+relative h-7 w-12 rounded-full
+transition-colors
+${
+    nightVision
+        ? "bg-cyan-400"
+        : "bg-slate-700"
+}
+`}
                                 >
                                     <span
                                         className={`
-                                            absolute top-1 size-5 rounded-full
-                                            bg-white shadow
-                                            transition-all
-                                            ${
-                                            nightVision
-                                                ? "right-1"
-                                                : "right-6"
-                                        }
-                                        `}
+absolute top-1 size-5 rounded-full
+bg-white shadow
+transition-all
+${
+    nightVision
+        ? "right-1"
+        : "right-6"
+}
+`}
                                     />
                                 </button>
                             </div>
@@ -458,7 +523,11 @@ export default function CctvCameraImageQuality() {
                                     <ResultRow
                                         icon={<Eye />}
                                         label="دید در شب"
-                                        value={nightVision ? "فعال" : "غیرفعال"}
+                                        value={
+                                            nightVision
+                                                ? "فعال"
+                                                : "غیرفعال"
+                                        }
                                     />
                                 </div>
                             </div>
@@ -507,6 +576,144 @@ export default function CctvCameraImageQuality() {
                         </div>
                     </section>
 
+                    {/* =====================================================
+                        Video Samples
+                    ====================================================== */}
+                    <section className="mt-5 rounded-[28px] border border-white/10 bg-[#0b1624] p-6 md:p-8">
+
+                        <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+
+                            <div>
+                                <div className="mb-3 flex items-center gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
+                                        <Camera className="size-5" />
+                                    </div>
+
+                                    <span className="text-xs font-semibold text-cyan-400">
+                                        نمونه واقعی تصویر
+                                    </span>
+                                </div>
+
+                                <h2 className="text-xl font-black md:text-2xl">
+                                    نمونه کیفیت تصویر دوربین مداربسته
+                                </h2>
+
+                                <p className="mt-2 max-w-3xl text-xs leading-7 text-slate-500 md:text-sm">
+                                    در ویدئوهای زیر می‌توانید نمونه واقعی
+                                    کیفیت تصویر دوربین‌های مداربسته را در
+                                    رزولوشن‌ها و شرایط مختلف مشاهده کنید.
+                                </p>
+                            </div>
+
+                            <div className="shrink-0 rounded-xl border border-cyan-400/10 bg-cyan-400/[0.03] px-4 py-2">
+                                <span className="text-xs text-slate-500">
+                                    تعداد نمونه‌ها:
+                                </span>
+
+                                <span className="mr-2 text-sm font-black text-cyan-400">
+                                    {sampleVideos.length}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-5 md:grid-cols-2">
+                            {sampleVideos.map((item) => (
+                                <article
+                                    key={item.id}
+                                    className="group overflow-hidden rounded-2xl border border-white/[0.07] bg-[#08121e] transition-all duration-300 hover:border-cyan-400/20 hover:shadow-xl hover:shadow-cyan-950/20"
+                                >
+                                    {/* Video */}
+                                    <div className="relative aspect-video overflow-hidden bg-black">
+                                        <video
+                                            className="h-full w-full object-cover"
+                                            controls
+                                            preload="metadata"
+                                            poster={item.poster}
+                                        >
+                                            <source
+                                                src={item.video}
+                                                type="video/mp4"
+                                            />
+
+                                            مرورگر شما از پخش ویدئو پشتیبانی نمی‌کند.
+                                        </video>
+                                    </div>
+
+                                    {/* Video Info */}
+                                    <div className="p-5">
+
+                                        <div className="flex items-start justify-between gap-3">
+
+                                            <div>
+                                                <h3 className="text-sm font-black text-white md:text-base">
+                                                    {item.title}
+                                                </h3>
+
+                                                <p className="mt-2 text-xs leading-6 text-slate-500">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+
+                                            <div className="shrink-0 rounded-lg bg-cyan-400/10 px-2.5 py-1.5">
+                                                <span className="text-xs font-black text-cyan-400">
+                                                    {item.resolution}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Video Specs */}
+                                        <div className="mt-4 grid grid-cols-3 gap-2">
+
+                                            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+                                                <span className="block text-[10px] text-slate-600">
+                                                    فاصله
+                                                </span>
+
+                                                <span className="mt-1 block text-xs font-bold text-slate-300">
+                                                    {item.distance}
+                                                </span>
+                                            </div>
+
+                                            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+                                                <span className="block text-[10px] text-slate-600">
+                                                    لنز
+                                                </span>
+
+                                                <span className="mt-1 block text-xs font-bold text-slate-300">
+                                                    {item.lens}
+                                                </span>
+                                            </div>
+
+                                            <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
+                                                <span className="block text-[10px] text-slate-600">
+                                                    شرایط
+                                                </span>
+
+                                                <span className="mt-1 block text-xs font-bold text-slate-300">
+                                                    {item.condition}
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+
+                        {/* Video Notice */}
+                        <div className="mt-6 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.02] p-4">
+                            <p className="text-xs leading-7 text-slate-500">
+                                <span className="font-bold text-cyan-400">
+                                    توجه:
+                                </span>{" "}
+                                کیفیت نمایش ویدئو ممکن است با توجه به
+                                نمایشگر، مرورگر و کیفیت اینترنت متفاوت باشد.
+                                نمونه‌های بالا برای مقایسه بهتر کیفیت تصویر
+                                دوربین‌ها ارائه شده‌اند.
+                            </p>
+                        </div>
+                    </section>
+
                     {/* Information */}
                     <section className="mt-5 grid gap-4 md:grid-cols-3">
 
@@ -532,6 +739,7 @@ export default function CctvCameraImageQuality() {
 
                     {/* Notice */}
                     <section className="mt-5 flex items-start gap-4 rounded-2xl border border-amber-400/10 bg-amber-400/[0.03] p-5">
+
                         <CircleHelp className="mt-0.5 size-5 shrink-0 text-amber-400" />
 
                         <div>
@@ -546,6 +754,7 @@ export default function CctvCameraImageQuality() {
                                 محیط نصب نیست.
                             </p>
                         </div>
+
                     </section>
                 </div>
             </main>
@@ -554,16 +763,17 @@ export default function CctvCameraImageQuality() {
 }
 
 function ResultRow({
-                       icon,
-                       label,
-                       value,
-                   }: {
+    icon,
+    label,
+    value,
+}: {
     icon: React.ReactNode;
     label: string;
     value: string;
 }) {
     return (
         <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3">
+
             <span className="text-cyan-400/70 [&>svg]:size-4">
                 {icon}
             </span>
@@ -575,21 +785,23 @@ function ResultRow({
             <span className="mr-auto text-[11px] font-semibold text-slate-300">
                 {value}
             </span>
+
         </div>
     );
 }
 
 function InfoCard({
-                      icon,
-                      title,
-                      text,
-                  }: {
+    icon,
+    title,
+    text,
+}: {
     icon: React.ReactNode;
     title: string;
     text: string;
 }) {
     return (
         <div className="rounded-[22px] border border-white/[0.07] bg-[#0b1624] p-5">
+
             <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
                 {icon}
             </div>
@@ -601,6 +813,7 @@ function InfoCard({
             <p className="mt-2 text-xs leading-7 text-slate-500">
                 {text}
             </p>
+
         </div>
     );
 }

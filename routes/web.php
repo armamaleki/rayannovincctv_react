@@ -37,6 +37,26 @@ Route::prefix('/')->name('client.')->group(function () {
         return inertia('client/calculator');
     })->name('calculator');
 
+    Route::get('/about-us', function () {
+        return inertia('client/about-us');
+    })->name('about-us');
+
+    Route::get('/contact-us', function () {
+        return inertia('client/contact-us');
+    })->name('contact-us');
+
+    Route::get('/faq', function () {
+        return inertia('client/FAQPage');
+    })->name('faq');
+
+    Route::get('/nasb-doorbin-madarbaste', function () {
+        return inertia('client/nasb-doorbin-madarbaste');
+    })->name('nasb-doorbin-madarbaste');
+
+    Route::get('/privacy-policy', function () {
+        return inertia('client/privacy-policy');
+    })->name('privacy-policy');
+
     Route::prefix('/warranty-registration')->name('warranty-registration.')->group(function () {
         Route::get('/', [WarrantyRegistrationController::class, 'index'])->name('index');
         Route::post('/store', [WarrantyRegistrationController::class, 'store'])->name('store');
@@ -71,4 +91,4 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

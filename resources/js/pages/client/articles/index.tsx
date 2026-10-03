@@ -3,127 +3,141 @@ import {
     Search,
     ArrowLeft,
     CalendarDays,
-    Clock3,
     BookOpen,
-    ChevronLeft,
-    Tag,
+    Loader2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { router } from "@inertiajs/react";
+import { InfiniteScroll } from '@inertiajs/react';
+interface Article {
+    id: number;
+    name: string;
+    slug: string;
+    status: "deactivate" | "active" | "check";
+    meta_title: string | null;
+    meta_description: string | null;
+    description: string | null;
+    short_description: string | null;
+    user_id: number | null;
+    created_at: string;
+    updated_at: string;
+}
 
-const categories = [
-    "همه",
-    "دوربین مداربسته",
-    "شبکه",
-    "ذخیره‌سازی",
-    "امنیت",
-    "آموزش",
-];
+interface Articles {
+    data: Article[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    next_page_url: string | null;
+}
 
-const articles = [
-    {
-        id: 1,
-        title: "راهنمای کامل انتخاب دوربین مداربسته برای محیط‌های مختلف",
-        excerpt:
-            "قبل از خرید دوربین مداربسته باید عواملی مانند محل نصب، میزان نور، رزولوشن، لنز و نوع کاربری را بررسی کنید.",
-        category: "دوربین مداربسته",
-        date: "۲۵ شهریور ۱۴۰۵",
-        readTime: "۸ دقیقه",
-        image: "/images/articles/cctv-guide.jpg",
-        featured: true,
-    },
-    {
-        id: 2,
-        title: "تفاوت دوربین IP و آنالوگ چیست؟",
-        excerpt:
-            "بررسی تفاوت‌های فنی، مزایا، محدودیت‌ها و کاربردهای دوربین‌های تحت شبکه و آنالوگ.",
-        category: "دوربین مداربسته",
-        date: "۲۲ شهریور ۱۴۰۵",
-        readTime: "۶ دقیقه",
-        image: "/images/articles/ip-vs-analog.jpg",
-    },
-    {
-        id: 3,
-        title: "چگونه ظرفیت هارد مورد نیاز دوربین مداربسته را محاسبه کنیم؟",
-        excerpt:
-            "با شناخت رزولوشن، فریم‌ریت، کدک فشرده‌سازی و تعداد دوربین می‌توان ظرفیت ذخیره‌سازی مورد نیاز را محاسبه کرد.",
-        category: "ذخیره‌سازی",
-        date: "۱۹ شهریور ۱۴۰۵",
-        readTime: "۷ دقیقه",
-        image: "/images/articles/storage.jpg",
-    },
-    {
-        id: 4,
-        title: "راهنمای انتخاب سوئیچ شبکه برای دوربین‌های تحت شبکه",
-        excerpt:
-            "چه سوئیچی برای یک سیستم نظارتی مناسب است؟ بررسی PoE، پهنای باند و تعداد پورت‌ها.",
-        category: "شبکه",
-        date: "۱۵ شهریور ۱۴۰۵",
-        readTime: "۵ دقیقه",
-        image: "/images/articles/network-switch.jpg",
-    },
-    {
-        id: 5,
-        title: "PoE چیست و چه کاربردی در سیستم‌های نظارتی دارد؟",
-        excerpt:
-            "در این مقاله با مفهوم PoE و نحوه انتقال همزمان برق و داده از طریق کابل شبکه آشنا می‌شویم.",
-        category: "شبکه",
-        date: "۱۲ شهریور ۱۴۰۵",
-        readTime: "۴ دقیقه",
-        image: "/images/articles/poe.jpg",
-    },
-    {
-        id: 6,
-        title: "تفاوت NVR و DVR؛ کدام دستگاه برای شما مناسب است؟",
-        excerpt:
-            "مقایسه کامل NVR و DVR و بررسی اینکه هرکدام برای چه نوع سیستم نظارتی مناسب هستند.",
-        category: "امنیت",
-        date: "۱۰ شهریور ۱۴۰۵",
-        readTime: "۶ دقیقه",
-        image: "/images/articles/nvr-dvr.jpg",
-    },
-    {
-        id: 7,
-        title: "آموزش تنظیمات اولیه دوربین تحت شبکه",
-        excerpt:
-            "مراحل اتصال، تنظیم IP، ورود به پنل و انجام تنظیمات اولیه یک دوربین IP.",
-        category: "آموزش",
-        date: "۶ شهریور ۱۴۰۵",
-        readTime: "۹ دقیقه",
-        image: "/images/articles/ip-camera.jpg",
-    },
-    {
-        id: 8,
-        title: "چگونه امنیت سیستم دوربین مداربسته را افزایش دهیم؟",
-        excerpt:
-            "چند راهکار مهم برای جلوگیری از دسترسی غیرمجاز به دوربین‌ها و تجهیزات شبکه.",
-        category: "امنیت",
-        date: "۲ شهریور ۱۴۰۵",
-        readTime: "۷ دقیقه",
-        image: "/images/articles/security.jpg",
-    },
-];
+interface Props {
+    articles: Articles;
+    filters: {
+        search?: string;
+    };
+}
 
-export default function Articles() {
-    const [category, setCategory] = useState("همه");
-    const [search, setSearch] = useState("");
+export default function Articles({
+                                     articles,
+                                     filters,
+                                 }: Props) {
+    const [search, setSearch] = useState(filters?.search ?? "");
 
-    const filteredArticles = useMemo(() => {
-        return articles.filter((article) => {
-            const matchCategory =
-                category === "همه" || article.category === category;
+    const [articleList, setArticleList] = useState<Article[]>(
+        articles.data,
+    );
 
-            const q = search.trim().toLowerCase();
+    const [nextPageUrl, setNextPageUrl] = useState<string | null>(
+        articles.next_page_url,
+    );
 
-            const matchSearch =
-                !q ||
-                article.title.toLowerCase().includes(q) ||
-                article.excerpt.toLowerCase().includes(q);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-            return matchCategory && matchSearch;
-        });
-    }, [category, search]);
 
-    const featured = articles.find((article) => article.featured);
+    /*
+    |--------------------------------------------------------------------------
+    | Sync articles when a new Inertia page is loaded
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Load More
+    |--------------------------------------------------------------------------
+    */
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Search
+    |--------------------------------------------------------------------------
+    */
+
+    const handleSearch = (e: FormEvent) => {
+        e.preventDefault();
+
+        router.get(
+            window.location.pathname,
+            {
+                search: search || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: false,
+                replace: true,
+                only: ["articles", "filters"],
+
+            },
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Clear Search
+    |--------------------------------------------------------------------------
+    */
+
+    const clearSearch = () => {
+        setSearch("");
+
+        router.get(
+            window.location.pathname,
+            {},
+            {
+                preserveState: true,
+                preserveScroll: false,
+                replace: true,
+                only: ["articles", "filters"],
+                onSuccess: (page) => {
+                    const newArticles =
+                        page.props.articles as ArticlesPagination;
+
+                    setArticleList(newArticles.data);
+
+                    setNextPageUrl(
+                        newArticles.next_page_url,
+                    );
+                },
+            },
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Date
+    |--------------------------------------------------------------------------
+    */
+
+    const formatDate = (date: string) => {
+        return new Intl.DateTimeFormat("fa-IR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(new Date(date));
+    };
 
     return (
         <HomeLayout>
@@ -134,6 +148,7 @@ export default function Articles() {
                 {/* Background */}
                 <div className="pointer-events-none fixed inset-0 overflow-hidden">
                     <div className="absolute right-[-250px] top-[-250px] h-[600px] w-[600px] rounded-full bg-cyan-500/10 blur-[150px]" />
+
                     <div className="absolute bottom-[-300px] left-[-250px] h-[600px] w-[600px] rounded-full bg-blue-600/10 blur-[150px]" />
 
                     <div
@@ -181,154 +196,114 @@ export default function Articles() {
 
                             <div className="text-left text-xs text-slate-500">
                                 <span className="text-2xl font-black text-white">
-                                    {articles.length}
+                                    {articles.total}
                                 </span>
+
                                 <br />
+
                                 مقاله منتشر شده
                             </div>
                         </div>
                     </section>
 
-                    {/* Featured */}
-                    {featured && (
-                        <section className="group relative mb-10 overflow-hidden rounded-[30px] border border-white/10 bg-[#0c1725]">
-                            <div className="grid min-h-[390px] lg:grid-cols-[1.15fr_.85fr]">
-
-                                {/* Image */}
-                                <div className="relative min-h-[280px] overflow-hidden bg-gradient-to-br from-cyan-500/20 to-blue-900/20">
-                                    <div
-                                        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                                        style={{
-                                            backgroundImage: `url(${featured.image})`,
-                                        }}
-                                    />
-
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#07111d] via-[#07111d]/30 to-transparent" />
-
-                                    <div className="absolute right-6 top-6 rounded-xl border border-cyan-400/20 bg-[#06101c]/80 px-3 py-2 text-xs font-bold text-cyan-400 backdrop-blur">
-                                        مقاله منتخب
-                                    </div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="flex flex-col justify-center p-7 md:p-10">
-                                    <div className="mb-5 flex items-center gap-3 text-xs">
-                                        <span className="rounded-lg bg-cyan-400/10 px-3 py-1.5 text-cyan-400">
-                                            {featured.category}
-                                        </span>
-
-                                        <span className="text-slate-600">
-                                            •
-                                        </span>
-
-                                        <span className="text-slate-500">
-                                            {featured.readTime}
-                                        </span>
-                                    </div>
-
-                                    <h2 className="max-w-2xl text-2xl font-black leading-[1.8] md:text-3xl">
-                                        {featured.title}
-                                    </h2>
-
-                                    <p className="mt-5 max-w-xl text-sm leading-8 text-slate-400">
-                                        {featured.excerpt}
-                                    </p>
-
-                                    <div className="mt-7 flex flex-wrap items-center gap-4">
-                                        <button
-                                            className="
-                                                flex h-11 items-center gap-2
-                                                rounded-xl bg-cyan-400
-                                                px-5 text-sm font-bold
-                                                text-slate-950
-                                                transition hover:bg-cyan-300
-                                            "
-                                        >
-                                            مطالعه مقاله
-                                            <ArrowLeft className="size-4" />
-                                        </button>
-
-                                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                                            <CalendarDays className="size-4" />
-                                            {featured.date}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    )}
-
                     {/* Search */}
-                    <section className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <section className="mb-6">
+                        <form
+                            onSubmit={handleSearch}
+                            className="flex flex-col gap-3 sm:flex-row"
+                        >
+                            <div className="relative w-full sm:max-w-[430px]">
+                                <Search className="absolute right-4 top-1/2 size-5 -translate-y-1/2 text-slate-500" />
 
-                        <div className="relative w-full lg:max-w-[430px]">
-                            <Search className="absolute right-4 top-1/2 size-5 -translate-y-1/2 text-slate-500" />
+                                <input
+                                    value={search}
+                                    onChange={(e) =>
+                                        setSearch(e.target.value)
+                                    }
+                                    placeholder="جستجو در مقالات..."
+                                    className="
+                                        h-12 w-full rounded-2xl
+                                        border border-white/10
+                                        bg-[#0b1522]
+                                        pr-12 pl-4
+                                        text-sm text-white
+                                        outline-none
+                                        transition
+                                        placeholder:text-slate-600
+                                        focus:border-cyan-400/40
+                                        focus:ring-4
+                                        focus:ring-cyan-400/5
+                                    "
+                                />
+                            </div>
 
-                            <input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="جستجو در مقالات..."
+                            <button
+                                type="submit"
                                 className="
-                                    h-12 w-full rounded-2xl
-                                    border border-white/10
-                                    bg-[#0b1522]
-                                    pr-12 pl-4
-                                    text-sm text-white
-                                    outline-none
+                                    h-12 rounded-2xl
+                                    bg-cyan-400
+                                    px-6
+                                    text-sm font-bold
+                                    text-slate-950
                                     transition
-                                    placeholder:text-slate-600
-                                    focus:border-cyan-400/40
-                                    focus:ring-4
-                                    focus:ring-cyan-400/5
+                                    hover:bg-cyan-300
                                 "
-                            />
-                        </div>
+                            >
+                                جستجو
+                            </button>
 
-                        <div className="flex flex-wrap gap-2">
-                            {categories.map((item) => {
-                                const active = category === item;
-
-                                return (
-                                    <button
-                                        key={item}
-                                        onClick={() => setCategory(item)}
-                                        className={`
-                                            rounded-xl border px-4 py-2.5
-                                            text-xs font-semibold
-                                            transition-all duration-200
-                                            ${
-                                            active
-                                                ? "border-cyan-400/40 bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20"
-                                                : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-cyan-400/20 hover:bg-white/[0.06] hover:text-white"
-                                        }
-                                        `}
-                                    >
-                                        {item}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                            {filters?.search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="
+                                        h-12 rounded-2xl
+                                        border border-white/10
+                                        bg-white/[0.03]
+                                        px-5
+                                        text-sm font-medium
+                                        text-slate-400
+                                        transition
+                                        hover:bg-white/[0.06]
+                                        hover:text-white
+                                    "
+                                >
+                                    پاک کردن
+                                </button>
+                            )}
+                        </form>
                     </section>
 
-                    {/* Result count */}
+                    {/* Result Count */}
                     <div className="mb-5 flex items-center gap-2 text-xs text-slate-500">
-                        <Tag className="size-3.5" />
-                        {filteredArticles.length} مقاله
+                        <BookOpen className="size-3.5" />
+
+                        {articles.total} مقاله
                     </div>
 
-                    {/* Articles Grid */}
-                    <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                        {filteredArticles
-                            .filter((article) => !article.featured)
-                            .map((article) => (
-                                <ArticleCard
-                                    key={article.id}
-                                    article={article}
-                                />
-                            ))}
-                    </section>
-
-                    {!filteredArticles.length && (
+                    {/* Articles */}
+                    {articleList.length > 0 ? (
+                        <InfiniteScroll
+                            data="articles"
+                            preserveUrl
+                            loading={
+                                <div className="flex items-center justify-center py-10">
+                                    <div className="text-sm text-slate-400">
+                                        در حال دریافت مقالات...
+                                    </div>
+                                </div>
+                            }
+                        >
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {articles.data.map((article) => (
+                                    <ArticleCard
+                                        key={article.id}
+                                        article={article}
+                                    />
+                                ))}
+                            </div>
+                        </InfiniteScroll>
+                    ) : (
                         <div className="rounded-3xl border border-white/10 bg-white/[0.03] py-24 text-center">
                             <BookOpen className="mx-auto size-10 text-slate-600" />
 
@@ -337,12 +312,10 @@ export default function Articles() {
                             </h3>
 
                             <p className="mt-2 text-sm text-slate-500">
-                                عبارت جستجو یا دسته‌بندی را تغییر دهید.
+                                عبارت جستجو را تغییر دهید.
                             </p>
                         </div>
                     )}
-
-                    {/* Bottom CTA */}
                     <section className="relative mt-10 overflow-hidden rounded-[28px] border border-cyan-400/10 bg-gradient-to-r from-cyan-400/[0.07] via-blue-500/[0.04] to-transparent p-7 md:p-9">
                         <div className="absolute -left-20 -top-20 size-52 rounded-full bg-cyan-400/10 blur-[80px]" />
 
@@ -357,11 +330,6 @@ export default function Articles() {
                                     نوین دنبال کنید.
                                 </p>
                             </div>
-
-                            <button className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-5 text-sm font-bold text-cyan-400 transition hover:bg-cyan-400 hover:text-slate-950">
-                                مشاهده همه مقالات
-                                <ChevronLeft className="size-4" />
-                            </button>
                         </div>
                     </section>
                 </div>
@@ -373,8 +341,16 @@ export default function Articles() {
 function ArticleCard({
                          article,
                      }: {
-    article: (typeof articles)[number];
+    article: Article;
 }) {
+    const formatDate = (date: string) => {
+        return new Intl.DateTimeFormat("fa-IR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(new Date(date));
+    };
+
     return (
         <article
             className="
@@ -389,50 +365,37 @@ function ArticleCard({
             "
         >
             {/* Image */}
-            <div className="relative aspect-[16/9] overflow-hidden bg-[#101d2d]">
-                <div
-                    className="
-                        absolute inset-0 bg-cover bg-center
-                        transition-transform duration-700
-                        group-hover:scale-105
-                    "
-                    style={{
-                        backgroundImage: `url(${article.image})`,
-                    }}
-                />
-
-                {/* fallback dark layer */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0c1725] via-transparent to-transparent" />
-
-                <div className="absolute right-4 top-4 rounded-lg border border-white/10 bg-[#07111d]/80 px-3 py-1.5 text-[10px] font-bold text-cyan-400 backdrop-blur">
-                    {article.category}
+            <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-cyan-500/10 to-blue-900/20">
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <BookOpen className="size-14 text-cyan-400/20" />
                 </div>
+
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c1725] via-transparent to-transparent" />
             </div>
 
             {/* Content */}
             <div className="p-5">
                 <h2 className="line-clamp-2 text-lg font-bold leading-8 text-white transition-colors group-hover:text-cyan-400">
-                    {article.title}
+                    {article.name}
                 </h2>
 
-                <p className="mt-3 line-clamp-2 text-xs leading-7 text-slate-500">
-                    {article.excerpt}
-                </p>
+                {article.short_description && (
+                    <p className="mt-3 line-clamp-2 text-xs leading-7 text-slate-500">
+                        {article.short_description}
+                    </p>
+                )}
 
                 <div className="mt-5 flex items-center justify-between border-t border-white/[0.06] pt-4">
-                    <div className="flex items-center gap-3 text-[10px] text-slate-600">
+                    <div className="flex items-center gap-2 text-[10px] text-slate-600">
                         <span className="flex items-center gap-1.5">
                             <CalendarDays className="size-3.5" />
-                            {article.date}
-                        </span>
 
-                        <span className="flex items-center gap-1.5">
-                            <Clock3 className="size-3.5" />
-                            {article.readTime}
+                            {formatDate(article.created_at)}
                         </span>
                     </div>
 
-                    <button
+                    <a
+                        href={`/articles/${article.slug}`}
                         className="
                             flex size-8 items-center justify-center
                             rounded-lg border border-white/10
@@ -445,7 +408,7 @@ function ArticleCard({
                         "
                     >
                         <ArrowLeft className="size-4" />
-                    </button>
+                    </a>
                 </div>
             </div>
         </article>

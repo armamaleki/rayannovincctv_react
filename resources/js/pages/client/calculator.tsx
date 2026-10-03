@@ -1,227 +1,525 @@
+
 import HomeLayout from "@/layouts/home/home-layout";
 import {
-    Calculator,
     Camera,
     Check,
-    Clock3,
     HardDrive,
     Info,
-    Layers3,
+    Mic,
     Minus,
     Plus,
-    Save,
-    ShieldCheck,
     Trash2,
     Video,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-type CameraItem = {
+/*
+|--------------------------------------------------------------------------
+| Types
+|--------------------------------------------------------------------------
+*/
+
+type CameraQuality =
+    | "D1"
+    | "1"
+    | "1.3"
+    | "2"
+    | "3"
+    | "4"
+    | "5"
+    | "6"
+    | "8"
+    | "12";
+
+type CompressionFormat = "H264" | "H264+" | "H265" | "H265+";
+
+type CameraGroup = {
     id: number;
     count: number;
-    resolution: string;
-    bitrate: number;
+    quality: CameraQuality;
 };
 
-const resolutions = [
-    {
-        value: "2mp",
-        label: "2MP",
-        bitrate: 2048,
-    },
-    {
-        value: "4mp",
-        label: "4MP",
-        bitrate: 4096,
-    },
-    {
-        value: "5mp",
-        label: "5MP",
-        bitrate: 5120,
-    },
-    {
-        value: "8mp",
-        label: "8MP / 4K",
-        bitrate: 8192,
-    },
-];
+/*
+|--------------------------------------------------------------------------
+| Camera Qualities
+|--------------------------------------------------------------------------
+*/
 
-const recordModes = [
+const cameraQualities: {
+    value: CameraQuality;
+    label: string;
+    description: string;
+}[] = [
     {
-        value: "24",
-        label: "24 ساعت",
-        description: "ضبط مداوم",
-        factor: 1,
+        value: "D1",
+        label: "D1",
+        description: "آنالوگ",
     },
     {
-        value: "12",
-        label: "12 ساعت",
-        description: "نیمه‌روز",
-        factor: 0.5,
+        value: "1",
+        label: "1MP",
+        description: "HD",
+    },
+    {
+        value: "1.3",
+        label: "1.3MP",
+        description: "HD+",
+    },
+    {
+        value: "2",
+        label: "2MP",
+        description: "Full HD",
+    },
+    {
+        value: "3",
+        label: "3MP",
+        description: "2K",
+    },
+    {
+        value: "4",
+        label: "4MP",
+        description: "2K+",
+    },
+    {
+        value: "5",
+        label: "5MP",
+        description: "2.5K",
+    },
+    {
+        value: "6",
+        label: "6MP",
+        description: "3K",
     },
     {
         value: "8",
-        label: "8 ساعت",
-        description: "ضبط محدود",
-        factor: 8 / 24,
+        label: "8MP",
+        description: "4K",
+    },
+    {
+        value: "12",
+        label: "12MP",
+        description: "4K+",
     },
 ];
 
-const hardDrives = [
-    1000,
-    2000,
-    4000,
-    6000,
-    8000,
-    10000,
-    12000,
+/*
+|--------------------------------------------------------------------------
+| Bitrate Table
+|--------------------------------------------------------------------------
+|
+| مقدارها بر حسب Mbps هستند.
+|
+| نکته:
+| این اعداد تقریبی هستند و Bitrate واقعی به سنسور، صحنه،
+| حرکت تصویر، تنظیمات Encoding، I-Frame و NVR/DVR بستگی دارد.
+|--------------------------------------------------------------------------
+*/
+
+const bitrateTable: Record<
+    CompressionFormat,
+    Partial<Record<CameraQuality, number>>
+> = {
+    H264: {
+        D1: 0.6,
+        "1": 1.8,
+        "1.3": 2.5,
+        "2": 4,
+        "3": 5,
+        "4": 6,
+        "5": 7,
+        "6": 8,
+        "8": 12,
+        "12": 16,
+    },
+
+    "H264+": {
+        D1: 0.4,
+        "1": 1.3,
+        "1.3": 1.9,
+        "2": 2.8,
+        "3": 3.5,
+        "4": 4.5,
+        "5": 5,
+        "6": 6,
+        "8": 9,
+        "12": 12,
+    },
+
+    H265: {
+        D1: 0.35,
+        "1": 1,
+        "1.3": 1.5,
+        "2": 2,
+        "3": 2.8,
+        "4": 3.5,
+        "5": 4.5,
+        "6": 5.5,
+        "8": 8,
+        "12": 10,
+    },
+
+    "H265+": {
+        D1: 0.25,
+        "1": 0.7,
+        "1.3": 1,
+        "2": 1.4,
+        "3": 1.8,
+        "4": 2.2,
+        "5": 2.8,
+        "6": 3.2,
+        "8": 5,
+        "12": 6.5,
+    },
+};
+
+/*
+|--------------------------------------------------------------------------
+| Select Options
+|--------------------------------------------------------------------------
+*/
+
+const frameRates = [
+    1,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    45,
+    60,
 ];
 
-export default function DiskCalculator() {
-    const [cameras, setCameras] = useState<CameraItem[]>([
+const compressionFormats: {
+    value: CompressionFormat;
+    label: string;
+}[] = [
+    {
+        value: "H265+",
+        label: "H.265+ (Smart 265)",
+    },
+    {
+        value: "H265",
+        label: "H.265",
+    },
+    {
+        value: "H264+",
+        label: "H.264+ (Smart 264)",
+    },
+    {
+        value: "H264",
+        label: "H.264",
+    },
+];
+
+const storageDays = Array.from(
+    { length: 180 },
+    (_, index) => index + 1,
+);
+
+const microphoneOptions = Array.from(
+    { length: 67 },
+    (_, index) => index,
+);
+
+/*
+|--------------------------------------------------------------------------
+| Constants
+|--------------------------------------------------------------------------
+*/
+
+const AUDIO_BITRATE_PER_MIC = 0.128;
+const OVERHEAD_FACTOR = 0.1;
+const SECONDS_PER_DAY = 86400;
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+function formatNumber(value: number, maximumFractionDigits = 2) {
+    return new Intl.NumberFormat("fa-IR", {
+        maximumFractionDigits,
+        minimumFractionDigits: 0,
+    }).format(value);
+}
+
+function getQualityLabel(quality: CameraQuality) {
+    if (quality === "D1") {
+        return "D1";
+    }
+
+    return `${quality}MP`;
+}
+
+function getBitrate(
+    format: CompressionFormat,
+    quality: CameraQuality,
+) {
+    return bitrateTable[format][quality] ?? 0;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Component
+|--------------------------------------------------------------------------
+*/
+
+export default function CctvStorageCalculator() {
+    /*
+    |--------------------------------------------------------------------------
+    | State
+    |--------------------------------------------------------------------------
+    */
+
+    const [cameraGroups, setCameraGroups] = useState<CameraGroup[]>([
         {
-            id: 1,
+            id: Date.now(),
             count: 4,
-            resolution: "4mp",
-            bitrate: 4096,
+            quality: "2",
         },
     ]);
 
-    const [recordHours, setRecordHours] = useState("24");
-    const [days, setDays] = useState(15);
-    const [selectedDisk, setSelectedDisk] = useState(4000);
-    const [motionDetection, setMotionDetection] = useState(false);
+    const [microphones, setMicrophones] = useState(0);
+
+    const [frameRate, setFrameRate] = useState(20);
+
+    const [compressionFormat, setCompressionFormat] =
+        useState<CompressionFormat>("H264");
+
+    const [days, setDays] = useState(30);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Add Camera Group
+    |--------------------------------------------------------------------------
+    */
 
     const addCameraGroup = () => {
-        const newId =
-            cameras.length > 0
-                ? Math.max(...cameras.map((camera) => camera.id)) + 1
-                : 1;
-
-        setCameras([
-            ...cameras,
+        setCameraGroups((previous) => [
+            ...previous,
             {
-                id: newId,
+                id: Date.now() + Math.random(),
                 count: 1,
-                resolution: "4mp",
-                bitrate: 4096,
+                quality: "2",
             },
         ]);
     };
 
+    /*
+    |--------------------------------------------------------------------------
+    | Remove Camera Group
+    |--------------------------------------------------------------------------
+    */
+
     const removeCameraGroup = (id: number) => {
-        if (cameras.length === 1) return;
-
-        setCameras(cameras.filter((camera) => camera.id !== id));
-    };
-
-    const updateCamera = (
-        id: number,
-        field: keyof CameraItem,
-        value: number | string
-    ) => {
-        setCameras(
-            cameras.map((camera) => {
-                if (camera.id !== id) return camera;
-
-                if (field === "resolution") {
-                    const resolution = resolutions.find(
-                        (item) => item.value === value
-                    );
-
-                    return {
-                        ...camera,
-                        resolution: String(value),
-                        bitrate: resolution?.bitrate ?? camera.bitrate,
-                    };
-                }
-
-                return {
-                    ...camera,
-                    [field]: value,
-                };
-            })
+        setCameraGroups((previous) =>
+            previous.filter((group) => group.id !== id),
         );
     };
 
-    const calculation = useMemo(() => {
-        const hours = Number(recordHours);
+    /*
+    |--------------------------------------------------------------------------
+    | Update Camera Count
+    |--------------------------------------------------------------------------
+    */
 
-        let totalBitrate = cameras.reduce(
-            (total, camera) =>
-                total + camera.count * camera.bitrate,
-            0
+    const updateCameraCount = (
+        id: number,
+        value: number,
+    ) => {
+        const count = Math.max(0, Number(value) || 0);
+
+        setCameraGroups((previous) =>
+            previous.map((group) =>
+                group.id === id
+                    ? {
+                          ...group,
+                          count,
+                      }
+                    : group,
+            ),
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update Camera Quality
+    |--------------------------------------------------------------------------
+    */
+
+    const updateCameraQuality = (
+        id: number,
+        quality: CameraQuality,
+    ) => {
+        setCameraGroups((previous) =>
+            previous.map((group) =>
+                group.id === id
+                    ? {
+                          ...group,
+                          quality,
+                      }
+                    : group,
+            ),
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Calculations
+    |--------------------------------------------------------------------------
+    */
+
+    const calculation = useMemo(() => {
+        let totalVideoBitrate = 0;
+
+        cameraGroups.forEach((group) => {
+            if (group.count <= 0) {
+                return;
+            }
+
+            const baseBitrate = getBitrate(
+                compressionFormat,
+                group.quality,
+            );
+
+            if (!baseBitrate) {
+                return;
+            }
+
+            /*
+            | Bitrate table is based on 25 FPS.
+            | Therefore bitrate is adjusted according to selected FPS.
+            */
+
+            const bitratePerCamera =
+                baseBitrate * (frameRate / 25);
+
+            totalVideoBitrate +=
+                bitratePerCamera * group.count;
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Audio
+        |--------------------------------------------------------------------------
+        */
+
+        const totalAudioBitrate =
+            microphones * AUDIO_BITRATE_PER_MIC;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Bitrate + Overhead
+        |--------------------------------------------------------------------------
+        */
+
+        const rawBitrate =
+            totalVideoBitrate + totalAudioBitrate;
+
+        const totalBitrate =
+            rawBitrate * (1 + OVERHEAD_FACTOR);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Convert Mbps -> Bytes Per Second
+        |--------------------------------------------------------------------------
+        */
+
+        const bytesPerSecond =
+            (totalBitrate * 1_000_000) / 8;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Storage
+        |--------------------------------------------------------------------------
+        */
+
+        const totalBytes =
+            bytesPerSecond *
+            SECONDS_PER_DAY *
+            days;
+
+        const totalGB =
+            totalBytes / 1_000_000_000;
+
+        const totalTB =
+            totalGB / 1000;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Total Cameras
+        |--------------------------------------------------------------------------
+        */
+
+        const totalCameras = cameraGroups.reduce(
+            (sum, group) => sum + group.count,
+            0,
         );
 
         /*
-         * Motion recording usually reduces required storage.
-         * This is an estimation and should be configurable
-         * according to the actual scene.
-         */
-        const motionFactor = motionDetection ? 0.45 : 1;
+        |--------------------------------------------------------------------------
+        | Quality Summary
+        |--------------------------------------------------------------------------
+        */
 
-        totalBitrate *= motionFactor;
-
-        // Mbps → MB/s
-        const megabytesPerSecond = totalBitrate / 8;
-
-        // MB/s → GB/day
-        const gigabytesPerDay =
-            (megabytesPerSecond * 60 * 60 * hours) / 1000;
-
-        const requiredGB = gigabytesPerDay * days;
-
-        const requiredTB = requiredGB / 1000;
-
-        const totalCameras = cameras.reduce(
-            (total, camera) => total + camera.count,
-            0
-        );
-
-        const diskCoverage =
-            selectedDisk / Math.max(requiredGB, 1);
+        const qualitySummary = cameraGroups
+            .filter((group) => group.count > 0)
+            .map(
+                (group) =>
+                    `${formatNumber(group.count)} × ${getQualityLabel(
+    group.quality,
+)}`,
+            )
+            .join(" ، ");
 
         return {
-            totalBitrate,
-            gigabytesPerDay,
-            requiredGB,
-            requiredTB,
             totalCameras,
-            diskCoverage,
+            qualitySummary,
+            totalVideoBitrate,
+            totalAudioBitrate,
+            totalBitrate,
+            totalBytes,
+            totalGB,
+            totalTB,
         };
     }, [
-        cameras,
-        recordHours,
+        cameraGroups,
+        microphones,
+        frameRate,
+        compressionFormat,
         days,
-        motionDetection,
-        selectedDisk,
     ]);
 
-    const recommendedDisk = useMemo(() => {
-        const required = calculation.requiredGB;
+    /*
+    |--------------------------------------------------------------------------
+    | Result Text
+    |--------------------------------------------------------------------------
+    */
 
-        return (
-            hardDrives.find((size) => size >= required) ??
-            Math.ceil(required / 1000) * 1000
-        );
-    }, [calculation.requiredGB]);
+    const storageResult =
+        calculation.totalTB >= 1
+            ? `${formatNumber(calculation.totalTB)} ترابایت`
+            : `${formatNumber(calculation.totalGB)} گیگابایت`;
 
-    const selectedDiskPercent = Math.min(
-        100,
-        (selectedDisk / calculation.requiredGB) * 100
-    );
+    /*
+    |--------------------------------------------------------------------------
+    | Render
+    |--------------------------------------------------------------------------
+    */
 
     return (
         <HomeLayout>
             <main
                 dir="rtl"
-                className="min-h-screen overflow-hidden bg-[#050b14] text-white"
+                className="min-h-screen bg-[#050b14] text-white"
             >
                 {/* Background */}
                 <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                    <div className="absolute right-[-250px] top-[-250px] size-[600px] rounded-full bg-cyan-500/[0.07] blur-[160px]" />
+                    <div className="absolute right-[-250px] top-[-200px] size-[600px] rounded-full bg-cyan-500/10 blur-[150px]" />
 
-                    <div className="absolute bottom-[-250px] left-[-250px] size-[600px] rounded-full bg-blue-600/[0.07] blur-[160px]" />
+                    <div className="absolute bottom-[-300px] left-[-250px] size-[600px] rounded-full bg-blue-600/10 blur-[160px]" />
 
                     <div
                         className="absolute inset-0 opacity-[0.025]"
@@ -233,20 +531,17 @@ export default function DiskCalculator() {
                     />
                 </div>
 
-                <div className="relative mx-auto max-w-[1400px] px-5 py-12 lg:px-8">
+                <div className="relative mx-auto max-w-[1450px] px-5 py-12 lg:px-8">
 
-                    {/* ================================================= */}
-                    {/* HEADER */}
-                    {/* ================================================= */}
-
-                    <section className="mb-10">
+                    {/* Header */}
+                    <section className="mb-8">
                         <div className="mb-5 flex items-center gap-3">
                             <div className="flex size-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400">
-                                <Calculator className="size-6" />
+                                <HardDrive className="size-6" />
                             </div>
 
                             <div>
-                                <p className="text-xs font-bold tracking-widest text-cyan-400">
+                                <p className="text-xs font-semibold tracking-wider text-cyan-400">
                                     RAYAN NOVIN
                                 </p>
 
@@ -256,39 +551,34 @@ export default function DiskCalculator() {
                             </div>
                         </div>
 
-                        <h1 className="text-3xl font-black leading-[1.6] md:text-5xl">
-                            محاسبه فضای هارد دوربین مداربسته
+                        <h1 className="text-3xl font-black tracking-tight md:text-5xl">
+                            محاسبه حجم هارد مورد نیاز دوربین مداربسته
                         </h1>
 
                         <p className="mt-4 max-w-3xl text-sm leading-8 text-slate-400 md:text-base">
-                            تعداد دوربین، کیفیت تصویر، مدت زمان ضبط و تعداد
-                            روزهای نگهداری را مشخص کنید تا فضای تقریبی موردنیاز
-                            برای هارد دستگاه DVR یا NVR محاسبه شود.
+                            تعداد دوربین، کیفیت تصویر، نرخ فریم، فرمت
+                            فشرده‌سازی و تعداد روزهای نگهداری را مشخص کنید تا
+                            حجم تقریبی هارد مورد نیاز برای ذخیره تصاویر
+                            محاسبه شود.
                         </p>
                     </section>
 
-                    {/* ================================================= */}
-                    {/* MAIN GRID */}
-                    {/* ================================================= */}
+                    {/* Main Grid */}
+                    <section className="grid gap-5 xl:grid-cols-[1fr_390px]">
 
-                    <div className="grid gap-5 xl:grid-cols-[1fr_390px]">
+                        {/* Calculator */}
+                        <div className="rounded-[28px] border border-white/10 bg-[#0b1624] p-6 md:p-8">
 
-                        {/* ================================================= */}
-                        {/* CONFIGURATION */}
-                        {/* ================================================= */}
-
-                        <section className="rounded-[28px] border border-white/[0.07] bg-[#0b1624] p-6 md:p-8">
-
-                            {/* Camera Header */}
-                            <div className="flex items-center justify-between">
+                            {/* Section Header */}
+                            <div className="mb-8 flex items-center justify-between">
                                 <div>
                                     <h2 className="text-lg font-black">
-                                        مشخصات دوربین‌ها
+                                        مشخصات سیستم دوربین
                                     </h2>
 
                                     <p className="mt-1 text-xs text-slate-500">
-                                        دوربین‌های پروژه را اضافه و مشخصات
-                                        هر گروه را انتخاب کنید.
+                                        مشخصات دوربین‌ها و شرایط ذخیره‌سازی را
+                                        انتخاب کنید.
                                     </p>
                                 </div>
 
@@ -298,561 +588,550 @@ export default function DiskCalculator() {
                             </div>
 
                             {/* Camera Groups */}
-                            <div className="mt-7 space-y-3">
+                            <div>
 
-                                {cameras.map((camera, index) => (
-                                    <div
-                                        key={camera.id}
-                                        className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"
+                                <div className="mb-4 flex items-center justify-between gap-3">
+                                    <div>
+                                        <h3 className="text-sm font-bold">
+                                            دوربین‌ها
+                                        </h3>
+
+                                        <p className="mt-1 text-[11px] text-slate-600">
+                                            برای دوربین‌های با کیفیت متفاوت،
+                                            گروه جداگانه ایجاد کنید.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={addCameraGroup}
+                                        className="flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:bg-cyan-300"
                                     >
-                                        <div className="mb-4 flex items-center justify-between">
+                                        <Plus className="size-4" />
+                                        افزودن گروه دوربین
+                                    </button>
+                                </div>
 
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex size-8 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-400">
-                                                    <Video className="size-4" />
-                                                </div>
+                                <div className="space-y-3">
+                                    {cameraGroups.map(
+                                        (group, index) => (
+                                            <div
+                                                key={group.id}
+                                                className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"
+                                            >
+                                                <div className="mb-3 flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex size-7 items-center justify-center rounded-lg bg-cyan-400/10 text-xs font-bold text-cyan-400">
+                                                            {index + 1}
+                                                        </div>
 
-                                                <div>
-                                                    <p className="text-xs font-bold">
-                                                        گروه دوربین {index + 1}
-                                                    </p>
-
-                                                    <p className="mt-0.5 text-[10px] text-slate-600">
-                                                        {camera.count} دوربین
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {cameras.length > 1 && (
-                                                <button
-                                                    onClick={() =>
-                                                        removeCameraGroup(
-                                                            camera.id
-                                                        )
-                                                    }
-                                                    className="flex size-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-red-400/10 hover:text-red-400"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="grid gap-3 md:grid-cols-2">
-
-                                            {/* Count */}
-                                            <div>
-                                                <label className="mb-2 block text-[11px] font-semibold text-slate-500">
-                                                    تعداد دوربین
-                                                </label>
-
-                                                <div className="flex h-11 items-center overflow-hidden rounded-xl border border-white/[0.07] bg-[#08111c]">
-
-                                                    <button
-                                                        onClick={() =>
-                                                            updateCamera(
-                                                                camera.id,
-                                                                "count",
-                                                                Math.max(
-                                                                    1,
-                                                                    camera.count -
-                                                                    1
-                                                                )
-                                                            )
-                                                        }
-                                                        className="flex h-full w-11 items-center justify-center text-slate-500 transition hover:bg-white/[0.04] hover:text-white"
-                                                    >
-                                                        <Minus className="size-4" />
-                                                    </button>
-
-                                                    <div className="flex-1 text-center text-sm font-bold">
-                                                        {camera.count}
+                                                        <span className="text-xs font-bold">
+                                                            گروه دوربین{" "}
+                                                            {index + 1}
+                                                        </span>
                                                     </div>
 
-                                                    <button
-                                                        onClick={() =>
-                                                            updateCamera(
-                                                                camera.id,
-                                                                "count",
-                                                                camera.count + 1
-                                                            )
-                                                        }
-                                                        className="flex h-full w-11 items-center justify-center text-slate-500 transition hover:bg-white/[0.04] hover:text-white"
-                                                    >
-                                                        <Plus className="size-4" />
-                                                    </button>
+                                                    {cameraGroups.length >
+                                                        1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeCameraGroup(
+                                                                    group.id,
+                                                                )
+                                                            }
+                                                            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] text-red-400 transition hover:bg-red-400/10"
+                                                        >
+                                                            <Trash2 className="size-3.5" />
+                                                            حذف
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="grid gap-3 md:grid-cols-2">
+
+                                                    {/* Count */}
+                                                    <div>
+                                                        <label className="mb-2 block text-[11px] font-semibold text-slate-400">
+                                                            تعداد دوربین
+                                                        </label>
+
+                                                        <div className="flex overflow-hidden rounded-xl border border-white/[0.07] bg-[#07111d]">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    updateCameraCount(
+                                                                        group.id,
+                                                                        Math.max(
+                                                                            0,
+                                                                            group.count -
+                                                                                1,
+                                                                        ),
+                                                                    )
+                                                                }
+                                                                className="flex w-11 items-center justify-center text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
+                                                            >
+                                                                <Minus className="size-4" />
+                                                            </button>
+
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={
+                                                                    group.count
+                                                                }
+                                                                onChange={(
+                                                                    e,
+                                                                ) =>
+                                                                    updateCameraCount(
+                                                                        group.id,
+                                                                        Number(
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        ),
+                                                                    )
+                                                                }
+                                                                className="min-w-0 flex-1 bg-transparent px-3 py-3 text-center text-sm font-bold text-white outline-none"
+                                                            />
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    updateCameraCount(
+                                                                        group.id,
+                                                                        group.count +
+                                                                            1,
+                                                                    )
+                                                                }
+                                                                className="flex w-11 items-center justify-center text-slate-500 transition hover:bg-white/[0.05] hover:text-white"
+                                                            >
+                                                                <Plus className="size-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Quality */}
+                                                    <div>
+                                                        <label className="mb-2 block text-[11px] font-semibold text-slate-400">
+                                                            کیفیت دوربین
+                                                        </label>
+
+                                                        <div className="relative">
+                                                            <select
+                                                                value={
+                                                                    group.quality
+                                                                }
+                                                                onChange={(
+                                                                    e,
+                                                                ) =>
+                                                                    updateCameraQuality(
+                                                                        group.id,
+                                                                        e
+                                                                            .target
+                                                                            .value as CameraQuality,
+                                                                    )
+                                                                }
+                                                                className="w-full appearance-none rounded-xl border border-white/[0.07] bg-[#07111d] px-4 py-3 text-sm font-bold text-white outline-none transition focus:border-cyan-400/40"
+                                                            >
+                                                                {cameraQualities.map(
+                                                                    (
+                                                                        quality,
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                quality.value
+                                                                            }
+                                                                            value={
+                                                                                quality.value
+                                                                            }
+                                                                            className="bg-[#0b1624]"
+                                                                        >
+                                                                            {
+                                                                                quality.label
+                                                                            }{" "}
+                                                                            —{" "}
+                                                                            {
+                                                                                quality.description
+                                                                            }
+                                                                        </option>
+                                                                    ),
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                    </div>
 
                                                 </div>
-                                            </div>
 
-                                            {/* Resolution */}
-                                            <div>
-                                                <label className="mb-2 block text-[11px] font-semibold text-slate-500">
-                                                    کیفیت تصویر
-                                                </label>
+                                                {/* Group Bitrate */}
+                                                <div className="mt-3 flex items-center justify-between rounded-xl border border-cyan-400/[0.07] bg-cyan-400/[0.02] px-3 py-2.5">
+                                                    <span className="text-[10px] text-slate-600">
+                                                        Bitrate تقریبی هر
+                                                        دوربین
+                                                    </span>
 
-                                                <div className="relative">
-                                                    <select
-                                                        value={
-                                                            camera.resolution
-                                                        }
-                                                        onChange={(e) =>
-                                                            updateCamera(
-                                                                camera.id,
-                                                                "resolution",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className="h-11 w-full appearance-none rounded-xl border border-white/[0.07] bg-[#08111c] px-4 text-xs font-semibold text-white outline-none transition focus:border-cyan-400/40"
-                                                    >
-                                                        {resolutions.map(
-                                                            (item) => (
-                                                                <option
-                                                                    key={
-                                                                        item.value
-                                                                    }
-                                                                    value={
-                                                                        item.value
-                                                                    }
-                                                                    className="bg-[#08111c]"
-                                                                >
-                                                                    {
-                                                                        item.label
-                                                                    }
-                                                                </option>
-                                                            )
-                                                        )}
-                                                    </select>
-
-                                                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
-                                                        <Layers3 className="size-4" />
+                                                    <span className="text-xs font-bold text-cyan-400">
+                                                        {formatNumber(
+                                                            getBitrate(
+                                                                compressionFormat,
+                                                                group.quality,
+                                                            ) *
+                                                                (frameRate /
+                                                                    25),
+                                                            2,
+                                                        )}{" "}
+                                                        Mbps
                                                     </span>
                                                 </div>
                                             </div>
-
-                                        </div>
-                                    </div>
-                                ))}
-
+                                        ),
+                                    )}
+                                </div>
                             </div>
 
-                            <button
-                                onClick={addCameraGroup}
-                                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 bg-white/[0.015] text-xs font-bold text-slate-500 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.03] hover:text-cyan-400"
-                            >
-                                <Plus className="size-4" />
-                                افزودن گروه دوربین
-                            </button>
+                            {/* Other Settings */}
+                            <div className="mt-8 grid gap-4 md:grid-cols-2">
 
-                            {/* Recording */}
-                            <div className="mt-10 border-t border-white/[0.06] pt-8">
-
-                                <div className="mb-5">
-                                    <h3 className="text-sm font-black">
-                                        تنظیمات ضبط
-                                    </h3>
-
-                                    <p className="mt-1 text-[11px] text-slate-600">
-                                        مشخص کنید روزانه چه مدت ضبط انجام می‌شود.
-                                    </p>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-2">
-                                    {recordModes.map((mode) => {
-                                        const active =
-                                            recordHours === mode.value;
-
-                                        return (
-                                            <button
-                                                key={mode.value}
-                                                onClick={() =>
-                                                    setRecordHours(
-                                                        mode.value
-                                                    )
-                                                }
-                                                className={`
-                                                    rounded-xl border p-3 text-center transition
-                                                    ${
-                                                    active
-                                                        ? "border-cyan-400/30 bg-cyan-400/10"
-                                                        : "border-white/[0.07] bg-white/[0.02] hover:border-white/15"
-                                                }
-                                                `}
-                                            >
-                                                <div
-                                                    className={`text-sm font-black ${
-                                                        active
-                                                            ? "text-cyan-400"
-                                                            : "text-white"
-                                                    }`}
-                                                >
-                                                    {mode.label}
-                                                </div>
-
-                                                <div className="mt-1 text-[10px] text-slate-600">
-                                                    {mode.description}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                            </div>
-
-                            {/* Days */}
-                            <div className="mt-8">
-
-                                <div className="mb-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Clock3 className="size-4 text-cyan-400" />
-
-                                        <label className="text-sm font-bold">
-                                            مدت نگهداری تصاویر
-                                        </label>
-                                    </div>
-
-                                    <span className="rounded-lg bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-400">
-                                        {days} روز
-                                    </span>
-                                </div>
-
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="90"
-                                    value={days}
-                                    onChange={(e) =>
-                                        setDays(Number(e.target.value))
-                                    }
-                                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-cyan-400"
-                                />
-
-                                <div className="mt-3 flex justify-between text-[10px] text-slate-600">
-                                    <span>۱ روز</span>
-                                    <span>۳۰ روز</span>
-                                    <span>۶۰ روز</span>
-                                    <span>۹۰ روز</span>
-                                </div>
-
-                            </div>
-
-                            {/* Motion */}
-                            <div className="mt-8 flex items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
-
+                                {/* Microphone */}
                                 <div>
-                                    <p className="text-xs font-bold">
-                                        ضبط با تشخیص حرکت
-                                    </p>
+                                    <label className="mb-2 flex items-center gap-2 text-xs font-bold">
+                                        <Mic className="size-4 text-cyan-400" />
+                                        تعداد میکروفون
+                                    </label>
 
-                                    <p className="mt-1 text-[10px] leading-5 text-slate-600">
-                                        در صورت فعال بودن، مصرف فضای ذخیره‌سازی
-                                        تقریبی کاهش پیدا می‌کند.
-                                    </p>
+                                    <div className="relative">
+                                        <select
+                                            value={microphones}
+                                            onChange={(e) =>
+                                                setMicrophones(
+                                                    Number(
+                                                        e.target.value,
+                                                    ),
+                                                )
+                                            }
+                                            className="w-full appearance-none rounded-xl border border-white/[0.07] bg-[#07111d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400/40"
+                                        >
+                                            {microphoneOptions.map(
+                                                (value) => (
+                                                    <option
+                                                        key={value}
+                                                        value={value}
+                                                        className="bg-[#0b1624]"
+                                                    >
+                                                        {value === 0
+                                                            ? "بدون میکروفون"
+                                                            : `${value} میکروفون`}
+                                                    </option>
+                                                ),
+                                            )}
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <button
-                                    onClick={() =>
-                                        setMotionDetection(
-                                            !motionDetection
-                                        )
-                                    }
-                                    className={`relative h-7 w-12 rounded-full transition ${
-                                        motionDetection
-                                            ? "bg-cyan-400"
-                                            : "bg-slate-700"
-                                    }`}
-                                >
-                                    <span
-                                        className={`absolute top-1 size-5 rounded-full bg-white shadow transition-all ${
-                                            motionDetection
-                                                ? "right-1"
-                                                : "right-6"
-                                        }`}
-                                    />
-                                </button>
-
-                            </div>
-
-                        </section>
-
-                        {/* ================================================= */}
-                        {/* RESULT */}
-                        {/* ================================================= */}
-
-                        <aside className="h-fit rounded-[28px] border border-cyan-400/10 bg-gradient-to-b from-[#102033] to-[#09131f] p-6 xl:sticky xl:top-6">
-
-                            <div className="flex items-center justify-between">
-
+                                {/* FPS */}
                                 <div>
-                                    <p className="text-[11px] text-slate-600">
-                                        فضای محاسبه‌شده
-                                    </p>
+                                    <label className="mb-2 flex items-center gap-2 text-xs font-bold">
+                                        <Video className="size-4 text-cyan-400" />
+                                        فریم بر ثانیه
+                                    </label>
 
-                                    <h2 className="mt-1 text-xl font-black">
-                                        نتیجه
-                                    </h2>
-                                </div>
-
-                                <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
-                                    <HardDrive className="size-5" />
-                                </div>
-
-                            </div>
-
-                            {/* Main Result */}
-                            <div className="my-8 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.035] p-6 text-center">
-
-                                <p className="text-xs text-slate-500">
-                                    فضای موردنیاز تقریبی
-                                </p>
-
-                                <div className="mt-3 flex items-end justify-center gap-2">
-                                    <span className="text-5xl font-black tracking-tight text-white">
-                                        {calculation.requiredTB < 1
-                                            ? Math.ceil(
-                                                calculation.requiredGB
+                                    <select
+                                        value={frameRate}
+                                        onChange={(e) =>
+                                            setFrameRate(
+                                                Number(
+                                                    e.target.value,
+                                                ),
                                             )
-                                            : calculation.requiredTB.toFixed(
-                                                1
-                                            )}
-                                    </span>
-
-                                    <span className="mb-2 text-sm font-bold text-cyan-400">
-                                        {calculation.requiredTB < 1
-                                            ? "GB"
-                                            : "TB"}
-                                    </span>
+                                        }
+                                        className="w-full appearance-none rounded-xl border border-white/[0.07] bg-[#07111d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400/40"
+                                    >
+                                        {frameRates.map((fps) => (
+                                            <option
+                                                key={fps}
+                                                value={fps}
+                                                className="bg-[#0b1624]"
+                                            >
+                                                {fps} FPS
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
 
-                                <p className="mt-3 text-[10px] text-slate-600">
-                                    بر اساس تنظیمات انتخاب‌شده
-                                </p>
+                                {/* Compression */}
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold">
+                                        فرمت فشرده‌سازی
+                                    </label>
+
+                                    <select
+                                        value={compressionFormat}
+                                        onChange={(e) =>
+                                            setCompressionFormat(
+                                                e.target
+                                                    .value as CompressionFormat,
+                                            )
+                                        }
+                                        className="w-full appearance-none rounded-xl border border-white/[0.07] bg-[#07111d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400/40"
+                                    >
+                                        {compressionFormats.map(
+                                            (format) => (
+                                                <option
+                                                    key={format.value}
+                                                    value={
+                                                        format.value
+                                                    }
+                                                    className="bg-[#0b1624]"
+                                                >
+                                                    {format.label}
+                                                </option>
+                                            ),
+                                        )}
+                                    </select>
+                                </div>
+
+                                {/* Days */}
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold">
+                                        مدت نگهداری تصاویر
+                                    </label>
+
+                                    <select
+                                        value={days}
+                                        onChange={(e) =>
+                                            setDays(
+                                                Number(
+                                                    e.target.value,
+                                                ),
+                                            )
+                                        }
+                                        className="w-full appearance-none rounded-xl border border-white/[0.07] bg-[#07111d] px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400/40"
+                                    >
+                                        {storageDays.map((day) => (
+                                            <option
+                                                key={day}
+                                                value={day}
+                                                className="bg-[#0b1624]"
+                                            >
+                                                {day} روز
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
                             </div>
 
-                            {/* Stats */}
-                            <div className="space-y-2">
+                            {/* Formula Notice */}
+                            <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-400/10 bg-amber-400/[0.03] p-4">
+                                <Info className="mt-0.5 size-4 shrink-0 text-amber-400" />
 
-                                <ResultRow
-                                    label="تعداد دوربین"
-                                    value={`${calculation.totalCameras} دوربین`}
-                                    icon={<Camera />}
-                                />
-
-                                <ResultRow
-                                    label="نرخ بیت"
-                                    value={`${Math.round(
-                                        calculation.totalBitrate / 1000
-                                    )} Mbps`}
-                                    icon={<SignalIcon />}
-                                />
-
-                                <ResultRow
-                                    label="مصرف روزانه"
-                                    value={`${Math.ceil(
-                                        calculation.gigabytesPerDay
-                                    )} GB`}
-                                    icon={<HardDrive />}
-                                />
-
-                                <ResultRow
-                                    label="مدت نگهداری"
-                                    value={`${days} روز`}
-                                    icon={<Clock3 />}
-                                />
-
-                            </div>
-
-                            {/* Recommended */}
-                            <div className="mt-5 rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.035] p-4">
-
-                                <div className="flex items-center gap-3">
-                                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-400/10 text-emerald-400">
-                                        <ShieldCheck className="size-4" />
-                                    </div>
-
-                                    <div>
-                                        <p className="text-[10px] text-slate-600">
-                                            هارد پیشنهادی
-                                        </p>
-
-                                        <p className="mt-1 text-sm font-black text-emerald-400">
-                                            {formatStorage(
-                                                recommendedDisk
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            {/* Selected Disk */}
-                            <div className="mt-6">
-
-                                <div className="mb-3 flex items-center justify-between">
-                                    <p className="text-xs font-bold">
-                                        بررسی هارد انتخابی
-                                    </p>
-
-                                    <span className="text-[10px] text-slate-600">
-                                        {formatStorage(selectedDisk)}
-                                    </span>
-                                </div>
-
-                                <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
-                                    <div
-                                        className={`h-full rounded-full transition-all ${
-                                            selectedDiskPercent >= 100
-                                                ? "bg-emerald-400"
-                                                : "bg-amber-400"
-                                        }`}
-                                        style={{
-                                            width: `${Math.min(
-                                                selectedDiskPercent,
-                                                100
-                                            )}%`,
-                                        }}
-                                    />
-                                </div>
-
-                                <p className="mt-2 text-[10px] leading-5 text-slate-600">
-                                    {selectedDiskPercent >= 100
-                                        ? "این هارد فضای محاسبه‌شده را پوشش می‌دهد."
-                                        : "این هارد برای مدت نگهداری انتخاب‌شده کافی نیست."}
-                                </p>
-
-                            </div>
-
-                        </aside>
-                    </div>
-
-                    {/* ================================================= */}
-                    {/* DISK SELECTOR */}
-                    {/* ================================================= */}
-
-                    <section className="mt-5 rounded-[28px] border border-white/[0.07] bg-[#0b1624] p-6 md:p-8">
-
-                        <div className="flex items-center justify-between">
-
-                            <div>
-                                <h2 className="text-lg font-black">
-                                    انتخاب ظرفیت هارد
-                                </h2>
-
-                                <p className="mt-1 text-xs text-slate-600">
-                                    ظرفیت هارد موردنظر خود را انتخاب کنید و
-                                    پوشش آن را نسبت به نیاز محاسبه‌شده ببینید.
+                                <p className="text-[11px] leading-6 text-slate-500">
+                                    حجم نهایی تقریبی است. Bitrate واقعی
+                                    دوربین بسته به صحنه، میزان حرکت، نور،
+                                    سنسور، تنظیمات Encoding و دستگاه
+                                    ضبط می‌تواند متفاوت باشد.
                                 </p>
                             </div>
-
-                            <HardDrive className="hidden size-6 text-cyan-400 sm:block" />
-
                         </div>
 
-                        <div className="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                        {/* Result */}
+                        <div className="relative overflow-hidden rounded-[28px] border border-cyan-400/10 bg-gradient-to-b from-[#102033] to-[#09131f] p-6">
 
-                            {hardDrives.map((size) => {
-                                const active = selectedDisk === size;
-                                const enough =
-                                    size >= calculation.requiredGB;
+                            <div className="absolute -left-20 -top-20 size-64 rounded-full bg-cyan-400/10 blur-[100px]" />
 
-                                return (
-                                    <button
-                                        key={size}
-                                        onClick={() =>
-                                            setSelectedDisk(size)
+                            <div className="relative">
+
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs text-slate-500">
+                                            نتیجه محاسبه
+                                        </p>
+
+                                        <h2 className="mt-1 text-xl font-black">
+                                            حجم هارد مورد نیاز
+                                        </h2>
+                                    </div>
+
+                                    <div className="flex size-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-400">
+                                        <HardDrive className="size-5" />
+                                    </div>
+                                </div>
+
+                                {/* Main Result */}
+                                <div className="my-10 text-center">
+                                    <div className="text-4xl font-black tracking-tight text-cyan-400 md:text-5xl">
+                                        {storageResult}
+                                    </div>
+
+                                    <p className="mt-3 text-xs text-slate-500">
+                                        حجم تقریبی برای{" "}
+                                        {formatNumber(days)} روز
+                                        نگهداری
+                                    </p>
+                                </div>
+
+                                {/* Selected Values */}
+                                <div className="space-y-2">
+
+                                    <SummaryRow
+                                        label="تعداد دوربین"
+                                        value={
+                                            calculation.totalCameras
+                                                ? `${formatNumber(
+    calculation.totalCameras,
+)} دوربین`
+                                                : "انتخاب نشده"
                                         }
-                                        className={`
-                                            relative rounded-xl border p-4 text-center transition
-                                            ${
-                                            active
-                                                ? "border-cyan-400/30 bg-cyan-400/10"
-                                                : "border-white/[0.07] bg-white/[0.02] hover:border-white/15"
+                                    />
+
+                                    <SummaryRow
+                                        label="کیفیت دوربین‌ها"
+                                        value={
+                                            calculation.qualitySummary ||
+                                            "انتخاب نشده"
                                         }
-                                        `}
-                                    >
-                                        {active && (
-                                            <span className="absolute left-2 top-2 flex size-4 items-center justify-center rounded-full bg-cyan-400 text-slate-950">
-                                                <Check className="size-2.5" />
+                                    />
+
+                                    <SummaryRow
+                                        label="میکروفون"
+                                        value={
+                                            microphones === 0
+                                                ? "بدون میکروفون"
+                                                : `${formatNumber(
+    microphones,
+)} میکروفون`
+                                        }
+                                    />
+
+                                    <SummaryRow
+                                        label="فریم بر ثانیه"
+                                        value={`${formatNumber(
+    frameRate,
+)} FPS`}
+                                    />
+
+                                    <SummaryRow
+                                        label="فشرده‌سازی"
+                                        value={
+                                            compressionFormat
+                                        }
+                                    />
+
+                                    <SummaryRow
+                                        label="مدت نگهداری"
+                                        value={`${formatNumber(
+    days,
+)} روز`}
+                                    />
+
+                                </div>
+
+                                {/* Bitrate Details */}
+                                <div className="mt-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
+
+                                    <p className="mb-3 text-xs font-bold text-slate-300">
+                                        جزئیات محاسبه
+                                    </p>
+
+                                    <div className="space-y-3">
+
+                                        <div className="flex justify-between text-[11px]">
+                                            <span className="text-slate-600">
+                                                Bitrate تصویر
                                             </span>
-                                        )}
 
-                                        <HardDrive
-                                            className={`mx-auto size-5 ${
-                                                active
-                                                    ? "text-cyan-400"
-                                                    : "text-slate-600"
-                                            }`}
-                                        />
+                                            <span className="font-bold text-slate-400">
+                                                {formatNumber(
+                                                    calculation.totalVideoBitrate,
+                                                    2,
+                                                )}{" "}
+                                                Mbps
+                                            </span>
+                                        </div>
 
-                                        <p className="mt-2 text-xs font-black">
-                                            {formatStorage(size)}
-                                        </p>
+                                        <div className="flex justify-between text-[11px]">
+                                            <span className="text-slate-600">
+                                                Bitrate صدا
+                                            </span>
 
-                                        <p
-                                            className={`mt-1 text-[9px] ${
-                                                enough
-                                                    ? "text-emerald-400/70"
-                                                    : "text-slate-700"
-                                            }`}
-                                        >
-                                            {enough
-                                                ? "کافی"
-                                                : "ناکافی"}
-                                        </p>
-                                    </button>
-                                );
-                            })}
+                                            <span className="font-bold text-slate-400">
+                                                {formatNumber(
+                                                    calculation.totalAudioBitrate,
+                                                    2,
+                                                )}{" "}
+                                                Mbps
+                                            </span>
+                                        </div>
 
+                                        <div className="flex justify-between border-t border-white/[0.05] pt-3 text-[11px]">
+                                            <span className="text-slate-500">
+                                                Bitrate نهایی
+                                            </span>
+
+                                            <span className="font-bold text-cyan-400">
+                                                {formatNumber(
+                                                    calculation.totalBitrate,
+                                                    2,
+                                                )}{" "}
+                                                Mbps
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </section>
 
-                    {/* ================================================= */}
-                    {/* INFO */}
-                    {/* ================================================= */}
-
+                    {/* Information Cards */}
                     <section className="mt-5 grid gap-4 md:grid-cols-3">
 
                         <InfoCard
+                            icon={<Camera />}
+                            title="کیفیت تصویر"
+                            text="هرچه رزولوشن دوربین بالاتر باشد، معمولاً برای ذخیره تصویر با کیفیت مشابه به Bitrate بیشتری نیاز خواهید داشت."
+                        />
+
+                        <InfoCard
                             icon={<Video />}
-                            title="رزولوشن بالاتر"
-                            text="هرچه کیفیت و نرخ بیت تصویر بالاتر باشد، فضای بیشتری برای ذخیره تصاویر موردنیاز خواهد بود."
+                            title="فریم بر ثانیه"
+                            text="افزایش FPS باعث افزایش تعداد فریم‌های ثبت‌شده و در نتیجه افزایش Bitrate و حجم ذخیره‌سازی می‌شود."
                         />
 
                         <InfoCard
-                            icon={<Clock3 />}
-                            title="مدت نگهداری"
-                            text="افزایش تعداد روزهای نگهداری تصاویر مستقیماً ظرفیت موردنیاز هارد را افزایش می‌دهد."
-                        />
-
-                        <InfoCard
-                            icon={<Save />}
-                            title="ضبط حرکتی"
-                            text="در حالت Motion Detection میزان مصرف فضای ذخیره‌سازی می‌تواند نسبت به ضبط مداوم کاهش پیدا کند."
+                            icon={<HardDrive />}
+                            title="فرمت فشرده‌سازی"
+                            text="فرمت‌های جدیدتر مانند H.265 و H.265+ می‌توانند با Bitrate کمتر، حجم ذخیره‌سازی را کاهش دهند."
                         />
 
                     </section>
 
-                    {/* ================================================= */}
-                    {/* NOTE */}
-                    {/* ================================================= */}
+                    {/* Important Notice */}
+                    <section className="mt-5 rounded-2xl border border-amber-400/10 bg-amber-400/[0.03] p-5">
 
-                    <section className="mt-5 flex items-start gap-4 rounded-2xl border border-amber-400/10 bg-amber-400/[0.025] p-5">
+                        <div className="flex items-start gap-4">
 
-                        <Info className="mt-0.5 size-5 shrink-0 text-amber-400" />
+                            <Info className="mt-0.5 size-5 shrink-0 text-amber-400" />
 
-                        <div>
-                            <h3 className="text-xs font-bold text-amber-300">
-                                توجه
-                            </h3>
+                            <div>
+                                <h3 className="text-sm font-bold text-amber-300">
+                                    توجه درباره نتیجه محاسبه
+                                </h3>
 
-                            <p className="mt-2 text-[11px] leading-7 text-slate-600">
-                                نتیجه این ماشین‌حساب تقریبی است. مقدار واقعی
-                                فضای موردنیاز می‌تواند با توجه به Codec، نرخ
-                                بیت واقعی دوربین، فریم‌ریت، میزان حرکت در صحنه،
-                                تنظیمات فشرده‌سازی و نوع ضبط متفاوت باشد.
-                            </p>
+                                <p className="mt-2 text-xs leading-7 text-slate-500">
+                                    عدد نمایش داده‌شده یک برآورد تقریبی
+                                    است. در شرایط واقعی، Bitrate دوربین
+                                    می‌تواند بر اساس میزان حرکت در تصویر،
+                                    نور محیط، جزئیات صحنه، تنظیمات دوربین،
+                                    نوع Encoder، I-Frame و تنظیمات دستگاه
+                                    ضبط تغییر کند. برای انتخاب هارد، بهتر
+                                    است مقداری فضای ذخیره‌سازی اضافه نیز
+                                    در نظر گرفته شود.
+                                </p>
+                            </div>
+
                         </div>
-
                     </section>
 
                 </div>
@@ -861,31 +1140,27 @@ export default function DiskCalculator() {
     );
 }
 
-/* ========================================================= */
-/* COMPONENTS */
-/* ========================================================= */
+/*
+|--------------------------------------------------------------------------
+| Summary Row
+|--------------------------------------------------------------------------
+*/
 
-function ResultRow({
-                       icon,
-                       label,
-                       value,
-                   }: {
-    icon: React.ReactNode;
+function SummaryRow({
+    label,
+    value,
+}: {
     label: string;
     value: string;
 }) {
     return (
-        <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3">
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-3">
 
-            <span className="flex size-8 items-center justify-center rounded-lg bg-white/[0.03] text-cyan-400 [&>svg]:size-4">
-                {icon}
-            </span>
-
-            <span className="text-[10px] text-slate-600">
+            <span className="text-[11px] text-slate-500">
                 {label}
             </span>
 
-            <span className="mr-auto text-[11px] font-bold text-slate-300">
+            <span className="text-left text-[11px] font-bold text-slate-300">
                 {value}
             </span>
 
@@ -893,11 +1168,17 @@ function ResultRow({
     );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Information Card
+|--------------------------------------------------------------------------
+*/
+
 function InfoCard({
-                      icon,
-                      title,
-                      text,
-                  }: {
+    icon,
+    title,
+    text,
+}: {
     icon: React.ReactNode;
     title: string;
     text: string;
@@ -909,40 +1190,14 @@ function InfoCard({
                 {icon}
             </div>
 
-            <h3 className="mt-4 text-sm font-black">
+            <h3 className="mt-4 text-sm font-bold">
                 {title}
             </h3>
 
-            <p className="mt-2 text-xs leading-7 text-slate-600">
+            <p className="mt-2 text-xs leading-7 text-slate-500">
                 {text}
             </p>
 
         </div>
-    );
-}
-
-function formatStorage(gb: number) {
-    if (gb >= 1000) {
-        return `${gb / 1000}TB`;
-    }
-
-    return `${gb}GB`;
-}
-
-function SignalIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="size-4"
-        >
-            <path d="M2 20h2" />
-            <path d="M6 16h2" />
-            <path d="M10 12h2" />
-            <path d="M14 8h2" />
-            <path d="M18 4h2" />
-        </svg>
     );
 }

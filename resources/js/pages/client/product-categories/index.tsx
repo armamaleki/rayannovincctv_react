@@ -1,113 +1,46 @@
 import HomeLayout from "@/layouts/home/home-layout";
+import { InfiniteScroll, Link, router } from "@inertiajs/react";
+import { useState } from "react";
 
-const categories = [
-    {
-        id: 1,
-        title: "دوربین مداربسته",
-        subtitle: "انواع دوربین‌های حفاظتی و نظارتی",
-        count: 128,
-        image: "/images/categories/cctv-camera.png",
-        items: [
-            "دوربین دام",
-            "دوربین بولت",
-            "دوربین PTZ",
-            "دوربین تحت شبکه",
-        ],
-    },
-    {
-        id: 2,
-        title: "دستگاه DVR",
-        subtitle: "ضبط‌کننده‌های دیجیتال تصاویر",
-        count: 42,
-        image: "/images/categories/dvr.png",
-        items: [
-            "DVR چهار کانال",
-            "DVR هشت کانال",
-            "DVR شانزده کانال",
-            "DVR حرفه‌ای",
-        ],
-    },
-    {
-        id: 3,
-        title: "دستگاه NVR",
-        subtitle: "ضبط‌کننده‌های تحت شبکه",
-        count: 36,
-        image: "/images/categories/nvr.png",
-        items: [
-            "NVR چهار کانال",
-            "NVR هشت کانال",
-            "NVR شانزده کانال",
-            "NVR سی و دو کانال",
-        ],
-    },
-    {
-        id: 4,
-        title: "تجهیزات شبکه",
-        subtitle: "سوئیچ، روتر و تجهیزات انتقال",
-        count: 74,
-        image: "/images/categories/network.png",
-        items: [
-            "سوئیچ شبکه",
-            "سوئیچ PoE",
-            "روتر",
-            "رک و متعلقات",
-        ],
-    },
-    {
-        id: 5,
-        title: "دزدگیر اماکن",
-        subtitle: "سیستم‌های حفاظتی و اعلام سرقت",
-        count: 58,
-        image: "/images/categories/alarm.png",
-        items: [
-            "مرکز کنترل",
-            "چشمی",
-            "آژیر",
-            "سنسور",
-        ],
-    },
-    {
-        id: 6,
-        title: "کنترل تردد",
-        subtitle: "راهکارهای کنترل ورود و خروج",
-        count: 31,
-        image: "/images/categories/access-control.png",
-        items: [
-            "دستگاه حضور و غیاب",
-            "اکسس کنترل",
-            "کارتخوان",
-            "تشخیص چهره",
-        ],
-    },
-    {
-        id: 7,
-        title: "آیفون و سیستم درب",
-        subtitle: "سیستم‌های ارتباطی و کنترل درب",
-        count: 45,
-        image: "/images/categories/intercom.png",
-        items: [
-            "آیفون تصویری",
-            "پنل ورودی",
-            "مانیتور",
-            "قفل دیجیتال",
-        ],
-    },
-    {
-        id: 8,
-        title: "تجهیزات جانبی",
-        subtitle: "لوازم و تجهیزات مورد نیاز نصب",
-        count: 96,
-        image: "/images/categories/accessories.png",
-        items: [
-            "هارد دیسک",
-            "کابل شبکه",
-            "منبع تغذیه",
-            "فیش و اتصالات",
-        ],
-    },
-];
+interface Subcategory {
+    id: number;
+    name: string;
+    slug: string;
+    image_url?: string | null;
+    products_count: number;
+}
 
-function CategoryCard({ category }) {
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+    short_description?: string | null;
+    image_url?: string | null;
+    products_count: number;
+    children: Subcategory[];
+}
+
+interface Stats {
+    products_count: number;
+    categories_count: number;
+    subcategories_count: number;
+}
+
+interface Props {
+    categories: {
+        data: Category[];
+        current_page: number;
+        last_page: number;
+        total: number;
+    };
+    stats: Stats;
+    query: {
+        q?: string;
+    };
+}
+
+function CategoryCard({ category }: { category: Category }) {
     return (
         <article
             className="
@@ -122,68 +55,83 @@ function CategoryCard({ category }) {
             "
         >
             {/* Image */}
-            <div
-                className="
-                    relative flex h-[250px]
-                    items-center justify-center
-                    overflow-hidden
-                    bg-[#f3f5f6]
-                "
+            <Link
+                href={`/store?category=${category.id}`}
+                className="block"
             >
-                {/* subtle background */}
                 <div
                     className="
-                        absolute -right-16 -top-16
-                        h-40 w-40 rounded-full
-                        bg-[#e7ebee]
-                        transition-transform duration-500
-                        group-hover:scale-125
-                    "
-                />
-
-                <img
-                    src={category.image}
-                    alt={category.title}
-                    className="
-                        relative z-10
-                        h-[190px] w-[80%]
-                        object-contain
-                        transition-transform duration-500
-                        group-hover:scale-105
-                    "
-                />
-
-                {/* Product count */}
-                <div
-                    className="
-                        absolute right-4 top-4 z-20
-                        rounded-full
-                        bg-white
-                        px-3 py-1.5
-                        text-xs font-medium
-                        text-[#66717c]
-                        shadow-sm
+                        relative flex h-[250px]
+                        items-center justify-center
+                        overflow-hidden
+                        bg-[#f3f5f6]
                     "
                 >
-                    {category.count} محصول
+                    {/* Background */}
+                    <div
+                        className="
+                            absolute -right-16 -top-16
+                            h-40 w-40 rounded-full
+                            bg-[#e7ebee]
+                            transition-transform duration-500
+                            group-hover:scale-125
+                        "
+                    />
+
+                    <img
+                        src={
+                            category.image_url ||
+                            "/assets/images/example.jpg"
+                        }
+                        alt={category.name}
+                        loading="lazy"
+                        className="
+                            relative z-10
+                            h-[190px] w-[80%]
+                            object-contain
+                            transition-transform duration-500
+                            group-hover:scale-105
+                        "
+                    />
+
+                    {/* Product Count */}
+                    <div
+                        className="
+                            absolute right-4 top-4 z-20
+                            rounded-full
+                            bg-white
+                            px-3 py-1.5
+                            text-xs font-medium
+                            text-[#66717c]
+                            shadow-sm
+                        "
+                    >
+                        {category.products_count.toLocaleString("fa-IR")} محصول
+                    </div>
                 </div>
-            </div>
+            </Link>
 
             {/* Content */}
             <div className="p-6">
-
                 <div className="mb-2 flex items-center justify-between gap-4">
-                    <h2
-                        className="
-                            text-xl font-black
-                            tracking-tight
-                            text-[#172331]
-                        "
+                    <Link
+                        href={`/store?category=${category.id}`}
+                        className="min-w-0"
                     >
-                        {category.title}
-                    </h2>
+                        <h2
+                            className="
+                                text-xl font-black
+                                tracking-tight
+                                text-[#172331]
+                            "
+                        >
+                            {category.name}
+                        </h2>
+                    </Link>
 
-                    <span
+                    <Link
+                        href={`/store?category=${category.id}`}
+                        aria-label={`مشاهده محصولات ${category.name}`}
                         className="
                             flex h-9 w-9 shrink-0
                             items-center justify-center
@@ -195,32 +143,48 @@ function CategoryCard({ category }) {
                         "
                     >
                         ←
-                    </span>
+                    </Link>
                 </div>
 
                 <p className="mb-5 text-sm leading-7 text-[#7a858f]">
-                    {category.subtitle}
+                    {category.short_description ||
+                        category.description ||
+                        `مشاهده محصولات دسته‌بندی ${category.name}`}
                 </p>
 
-                {/* Sub categories */}
-                <div className="grid grid-cols-2 gap-2">
-                    {category.items.map((item) => (
-                        <div
-                            key={item}
-                            className="
-                                rounded-xl
-                                bg-[#f6f7f8]
-                                px-3 py-2.5
-                                text-xs
-                                text-[#58636d]
-                                transition-colors
-                                group-hover:bg-[#f0f2f4]
-                            "
-                        >
-                            {item}
-                        </div>
-                    ))}
-                </div>
+                {/* Subcategories */}
+                {category.children?.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2">
+                        {category.children.map((item) => (
+                            <Link
+                                key={item.id}
+                                href={`/store?category=${item.id}`}
+                                className="
+                                    rounded-xl
+                                    bg-[#f6f7f8]
+                                    px-3 py-2.5
+                                    text-xs
+                                    text-[#58636d]
+                                    transition-colors
+                                    hover:bg-[#e9edf0]
+                                    hover:text-[#172331]
+                                "
+                            >
+                                <span className="block truncate">
+                                    {item.name}
+                                </span>
+
+                                <span className="mt-1 block text-[10px] text-[#98a1a9]">
+                                    {item.products_count.toLocaleString("fa-IR")} محصول
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-xl bg-[#f6f7f8] px-3 py-4 text-center text-xs text-[#98a1a9]">
+                        زیر‌دسته‌ای ثبت نشده است.
+                    </div>
+                )}
 
                 {/* Bottom */}
                 <div
@@ -235,25 +199,62 @@ function CategoryCard({ category }) {
                         مشاهده دسته‌بندی
                     </span>
 
-                    <span
+                    <Link
+                        href={`/store?category=${category.id}`}
                         className="
                             text-sm font-bold
                             text-[#172331]
+                            transition-colors
+                            hover:text-indigo-600
                         "
                     >
                         مشاهده محصولات
-                    </span>
+                    </Link>
                 </div>
-
             </div>
         </article>
     );
 }
 
-export default function Index() {
+export default function Index({
+                                  categories,
+                                  stats,
+                                  query,
+                              }: Props) {
+    const [search, setSearch] = useState(query?.q ?? "");
+
+    const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        router.get(
+            window.location.pathname,
+            {
+                q: search.trim() || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: false,
+                replace: true,
+            },
+        );
+    };
+
+    const clearSearch = () => {
+        setSearch("");
+
+        router.get(
+            window.location.pathname,
+            {},
+            {
+                preserveState: true,
+                preserveScroll: false,
+                replace: true,
+            },
+        );
+    };
+
     return (
         <HomeLayout>
-
             <main
                 dir="rtl"
                 className="
@@ -262,14 +263,10 @@ export default function Index() {
                     text-[#172331]
                 "
             >
-
                 {/* Header */}
                 <section className="mx-auto max-w-[1500px] px-6 pb-8 pt-12 lg:px-10">
-
                     <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-
                         <div className="max-w-3xl">
-
                             <div
                                 className="
                                     mb-4 inline-flex
@@ -305,27 +302,25 @@ export default function Index() {
                                 شبکه رایان نوین را بر اساس دسته‌بندی
                                 موردنظر خود مشاهده کنید.
                             </p>
-
                         </div>
 
                         {/* Search */}
-                        <div className="w-full lg:w-[360px]">
-
+                        <form
+                            onSubmit={handleSearch}
+                            className="w-full lg:w-[360px]"
+                        >
                             <div
                                 className="
                                     flex h-14
-                                    items-center
-                                    gap-3
+                                    items-center gap-3
                                     rounded-2xl
                                     border border-[#dce1e5]
-                                    bg-white
-                                    px-4
+                                    bg-white px-4
                                     shadow-sm
                                 "
                             >
-
                                 <svg
-                                    className="h-5 w-5 text-[#8a949d]"
+                                    className="h-5 w-5 shrink-0 text-[#8a949d]"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -337,6 +332,10 @@ export default function Index() {
 
                                 <input
                                     type="text"
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
                                     placeholder="جستجو در دسته‌بندی‌ها..."
                                     className="
                                         h-full w-full
@@ -347,18 +346,23 @@ export default function Index() {
                                     "
                                 />
 
+                                {search && (
+                                    <button
+                                        type="button"
+                                        onClick={clearSearch}
+                                        aria-label="پاک کردن جستجو"
+                                        className="shrink-0 text-xs text-[#8a949d] hover:text-[#172331]"
+                                    >
+                                        پاک کردن
+                                    </button>
+                                )}
                             </div>
-
-                        </div>
-
+                        </form>
                     </div>
-
                 </section>
-
 
                 {/* Stats */}
                 <section className="mx-auto max-w-[1500px] px-6 lg:px-10">
-
                     <div
                         className="
                             grid grid-cols-2
@@ -369,20 +373,21 @@ export default function Index() {
                             md:grid-cols-4
                         "
                     >
-
                         <div className="border-l border-[#edf0f2] p-6">
                             <div className="text-2xl font-black">
-                                +500
+                                {stats.products_count.toLocaleString("fa-IR")}
                             </div>
+
                             <div className="mt-1 text-xs text-[#8a949d]">
-                                محصول
+                                محصول فعال
                             </div>
                         </div>
 
                         <div className="border-l border-[#edf0f2] p-6">
                             <div className="text-2xl font-black">
-                                8
+                                {stats.categories_count.toLocaleString("fa-IR")}
                             </div>
+
                             <div className="mt-1 text-xs text-[#8a949d]">
                                 دسته اصلی
                             </div>
@@ -390,10 +395,11 @@ export default function Index() {
 
                         <div className="border-l border-[#edf0f2] p-6">
                             <div className="text-2xl font-black">
-                                +30
+                                {stats.subcategories_count.toLocaleString("fa-IR")}
                             </div>
+
                             <div className="mt-1 text-xs text-[#8a949d]">
-                                برند
+                                زیر‌دسته
                             </div>
                         </div>
 
@@ -401,47 +407,59 @@ export default function Index() {
                             <div className="text-2xl font-black">
                                 24/7
                             </div>
+
                             <div className="mt-1 text-xs text-[#8a949d]">
                                 پشتیبانی
                             </div>
                         </div>
-
                     </div>
-
                 </section>
-
 
                 {/* Categories */}
                 <section className="mx-auto max-w-[1500px] px-6 py-10 lg:px-10">
+                    {categories.data.length > 0 ? (
+                        <InfiniteScroll
+                            data="categories"
+                            preserveUrl
+                        >
+                            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                {categories.data.map((category) => (
+                                    <CategoryCard
+                                        key={category.id}
+                                        category={category}
+                                    />
+                                ))}
+                            </div>
+                        </InfiniteScroll>
+                    ) : (
+                        <div className="rounded-[28px] border border-[#dce1e5] bg-white px-6 py-16 text-center">
+                            <h2 className="text-xl font-black text-[#172331]">
+                                دسته‌بندی‌ای پیدا نشد
+                            </h2>
 
-                    <div
-                        className="
-                            grid gap-6
-                            md:grid-cols-2
-                            xl:grid-cols-3
-                        "
-                    >
+                            <p className="mt-3 text-sm leading-7 text-[#7a858f]">
+                                عبارت دیگری را برای جستجو وارد کنید.
+                            </p>
 
-                        {categories.map((category) => (
-                            <CategoryCard
-                                key={category.id}
-                                category={category}
-                            />
-                        ))}
-
-                    </div>
-
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={clearSearch}
+                                    className="mt-6 rounded-xl bg-[#172331] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-indigo-600"
+                                >
+                                    نمایش همه دسته‌بندی‌ها
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </section>
-
 
                 {/* Bottom CTA */}
                 <section className="mx-auto max-w-[1500px] px-6 pb-16 lg:px-10">
-
                     <div
                         className="
                             flex flex-col
-                            items-center
-                            justify-between
+                            items-center justify-between
                             gap-6
                             rounded-[28px]
                             bg-[#172331]
@@ -451,9 +469,7 @@ export default function Index() {
                             md:px-12
                         "
                     >
-
                         <div>
-
                             <h2 className="text-2xl font-black">
                                 برای انتخاب تجهیزات نیاز به راهنمایی دارید؟
                             </h2>
@@ -462,10 +478,10 @@ export default function Index() {
                                 کارشناسان رایان نوین برای انتخاب تجهیزات مناسب
                                 پروژه شما آماده‌اند.
                             </p>
-
                         </div>
 
-                        <button
+                        <Link
+                            href="/contact"
                             className="
                                 shrink-0
                                 rounded-2xl
@@ -478,14 +494,10 @@ export default function Index() {
                             "
                         >
                             دریافت مشاوره
-                        </button>
-
+                        </Link>
                     </div>
-
                 </section>
-
             </main>
-
         </HomeLayout>
     );
 }

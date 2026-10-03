@@ -70,7 +70,7 @@ export default function HomeHeader() {
         },
         {
             label: 'محاسبه فضای هارد',
-            href: '/products',
+            href: client.calculator(),
             icon: <Store/>,
         },
     ]
